@@ -1,0 +1,290 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}👑 {{ title }} - {{ store_settings.store_name|default:"Vera's Choice" }}{% endblock %}
+{% block page_title %}👑 {{ title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="royal-card">
+            <div class="royal-card-header">
+                <span class="royal-header-icon">🏷️</span>
+                <span class="royal-header-title">{{ title }}</span>
+                <span class="royal-header-decoration">✦</span>
+            </div>
+            <div class="royal-card-body">
+                <form method="post" class="royal-form">
+                    {% csrf_token %}
+                    
+                    <div class="royal-form-group">
+                        <label for="{{ form.name.id_for_label }}" class="royal-form-label">
+                            Category Name <span class="royal-required">*</span>
+                        </label>
+                        {{ form.name }}
+                        {% if form.name.help_text %}
+                            <small class="royal-help-text">{{ form.name.help_text }}</small>
+                        {% endif %}
+                        {% if form.name.errors %}
+                            <div class="royal-error">
+                                {% for error in form.name.errors %}
+                                    <i class="bi bi-exclamation-circle"></i> {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="royal-form-group">
+                        <label for="{{ form.description.id_for_label }}" class="royal-form-label">
+                            Description
+                        </label>
+                        {{ form.description }}
+                        {% if form.description.help_text %}
+                            <small class="royal-help-text">{{ form.description.help_text }}</small>
+                        {% endif %}
+                        {% if form.description.errors %}
+                            <div class="royal-error">
+                                {% for error in form.description.errors %}
+                                    <i class="bi bi-exclamation-circle"></i> {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="royal-form-actions">
+                        <button type="submit" class="btn-royal-primary">
+                            <i class="bi bi-check-circle"></i> Save Category
+                        </button>
+                        <a href="{% url 'core:category_list' %}" class="btn-royal-outline">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Royal Card */
+.royal-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 24px;
+    border: 1px solid rgba(232, 213, 245, 0.2);
+    box-shadow: 0 4px 30px rgba(184, 150, 212, 0.08);
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.royal-card:hover {
+    box-shadow: 0 12px 50px rgba(184, 150, 212, 0.15);
+    transform: translateY(-3px);
+}
+
+/* Royal Card Header */
+.royal-card-header {
+    padding: 22px 30px;
+    background: linear-gradient(135deg, rgba(245, 236, 250, 0.6), rgba(232, 213, 245, 0.3));
+    border-bottom: 2px solid rgba(232, 213, 245, 0.2);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: 'Playfair Display', serif;
+}
+
+.royal-header-icon {
+    font-size: 24px;
+}
+
+.royal-header-title {
+    flex: 1;
+    font-size: 22px;
+    font-weight: 700;
+    color: #4A3F5C;
+    letter-spacing: 0.5px;
+}
+
+.royal-header-decoration {
+    font-size: 18px;
+    color: #D4B8E0;
+    animation: royal-sparkle 2s ease-in-out infinite;
+}
+
+@keyframes royal-sparkle {
+    0%, 100% { opacity: 0.5; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.2); }
+}
+
+.royal-card-body {
+    padding: 30px;
+}
+
+/* Royal Form */
+.royal-form-group {
+    margin-bottom: 22px;
+}
+
+.royal-form-label {
+    display: block;
+    font-weight: 600;
+    color: #4A3F5C;
+    font-size: 14px;
+    margin-bottom: 6px;
+    letter-spacing: 0.3px;
+}
+
+.royal-required {
+    color: #D47A7A;
+    margin-left: 3px;
+}
+
+/* Form Controls */
+.royal-form input,
+.royal-form select,
+.royal-form textarea {
+    width: 100%;
+    padding: 12px 18px;
+    border-radius: 14px;
+    border: 2px solid #E8D5F5;
+    background: #FFFAF8;
+    font-family: 'Quicksand', sans-serif;
+    font-weight: 500;
+    color: #4A3F5C;
+    transition: all 0.3s ease;
+    font-size: 15px;
+}
+
+.royal-form input:focus,
+.royal-form select:focus,
+.royal-form textarea:focus {
+    border-color: #B896D4;
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(184, 150, 212, 0.12);
+    background: #FFFFFF;
+}
+
+.royal-form textarea {
+    resize: vertical;
+    min-height: 120px;
+}
+
+.royal-help-text {
+    display: block;
+    font-size: 13px;
+    color: #7A6B8A;
+    margin-top: 4px;
+    font-weight: 400;
+}
+
+.royal-error {
+    display: block;
+    color: #D47A7A;
+    font-size: 14px;
+    font-weight: 500;
+    margin-top: 4px;
+    padding: 8px 12px;
+    background: #F5E8E8;
+    border-radius: 10px;
+}
+
+.royal-error i {
+    margin-right: 6px;
+}
+
+/* Royal Form Actions */
+.royal-form-actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 2px solid rgba(232, 213, 245, 0.2);
+}
+
+/* Royal Buttons */
+.btn-royal-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 30px;
+    background: linear-gradient(135deg, #D4B8E0, #B896D4);
+    border: none;
+    border-radius: 14px;
+    color: white;
+    font-weight: 600;
+    font-family: 'Quicksand', sans-serif;
+    font-size: 16px;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    cursor: pointer;
+    text-decoration: none;
+    box-shadow: 0 4px 15px rgba(184, 150, 212, 0.25);
+}
+
+.btn-royal-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 30px rgba(184, 150, 212, 0.35);
+    color: white;
+    text-decoration: none;
+}
+
+.btn-royal-primary i {
+    font-size: 18px;
+}
+
+.btn-royal-outline {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 30px;
+    border: 2px solid #D4B8E0;
+    border-radius: 14px;
+    color: #4A3F5C;
+    font-weight: 600;
+    font-family: 'Quicksand', sans-serif;
+    font-size: 16px;
+    background: transparent;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.btn-royal-outline:hover {
+    background: #F5ECFA;
+    border-color: #B896D4;
+    transform: translateY(-3px);
+    box-shadow: 0 4px 20px rgba(184, 150, 212, 0.15);
+    color: #4A3F5C;
+    text-decoration: none;
+}
+
+.btn-royal-outline i {
+    font-size: 18px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .royal-card-header {
+        padding: 18px 20px;
+        flex-wrap: wrap;
+    }
+    
+    .royal-header-title {
+        font-size: 18px;
+    }
+    
+    .royal-card-body {
+        padding: 20px;
+    }
+    
+    .royal-form-actions {
+        flex-direction: column;
+    }
+    
+    .btn-royal-primary,
+    .btn-royal-outline {
+        justify-content: center;
+        width: 100%;
+    }
+}
+</style>
+{% endblock %}

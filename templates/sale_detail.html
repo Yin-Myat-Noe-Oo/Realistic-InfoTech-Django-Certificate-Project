@@ -1,0 +1,1003 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Order Detail - {{ store_settings.store_name|default:"Vera's Choice" }}{% endblock %}
+{% block page_title %} Order #{{ sale.invoice_number }}{% endblock %}
+
+{% block content %}
+<!-- Royal Decorative Header -->
+<div class="royal-header text-center mb-4">
+   
+    <h2 style="font-family: 'Playfair Display', serif; color: #4A3F5C; font-weight: 700; letter-spacing: 2px;">
+        Transaction Details
+    </h2>
+    <p style="color: #7A6B8A; font-weight: 300; letter-spacing: 1px; font-size: 16px;">
+        <i class="bi bi-gem"></i> Invoice #{{ sale.invoice_number }} <i class="bi bi-gem"></i>
+    </p>
+</div>
+
+<div class="row g-4">
+    <!-- Left Column - Order Items -->
+    <div class="col-lg-8">
+        <!-- Order Items Card -->
+        <div class="royal-card">
+            <div class="royal-card-header">
+                <span class="royal-header-icon">📋</span>
+                <span class="royal-header-title">Order Items</span>
+                <span class="royal-header-decoration">✦</span>
+                <span style="margin-left: auto; font-size: 14px; color: #7A6B8A; font-family: 'Quicksand', sans-serif;">
+                    <i class="bi bi-gem"></i> {{ sale.items.count }} items
+                </span>
+            </div>
+            <div class="royal-card-body" style="padding: 0;">
+                <div class="table-responsive">
+                    <table class="royal-table">
+                        <thead>
+                            <tr>
+                                <th>👑 Product</th>
+                                <th>💎 Price</th>
+                                <th>📦 Quantity</th>
+                                <th>✨ Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in sale.items.all %}
+                                <tr>
+                                    <td>
+                                        <div class="royal-product-cell">
+                                            <div class="royal-product-icon">
+                                                <i class="bi bi-box"></i>
+                                            </div>
+                                            <span class="royal-product-name">{{ item.product.name }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="royal-price">${{ item.price|floatformat:2 }}</td>
+                                    <td>
+                                        <span class="royal-quantity-badge">{{ item.quantity }}</span>
+                                    </td>
+                                    <td class="royal-total-price">${{ item.total|floatformat:2 }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot class="royal-table-footer">
+                            <tr>
+                                <td colspan="3" class="text-end royal-subtotal-label">Subtotal:</td>
+                                <td class="royal-subtotal-value">${{ sale.subtotal|floatformat:2 }}</td>
+                            </tr>
+                            <tr>
+                                <td colspan="3" class="text-end royal-discount-label">Discount:</td>
+                                <td class="royal-discount-value">-${{ sale.discount|floatformat:2 }}</td>
+                            </tr>
+                            <tr>
+                                <td colspan="3" class="text-end royal-tax-label">Tax (5%):</td>
+                                <td class="royal-tax-value">${{ sale.tax|floatformat:2 }}</td>
+                            </tr>
+                            <tr class="royal-grand-total-row">
+                                <td colspan="3" class="text-end royal-grand-total-label">👑 Total:</td>
+                                <td class="royal-grand-total-value">${{ sale.total_amount|floatformat:2 }}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Delivery & Status Management -->
+        <div class="royal-card mt-4" id="update-status">
+            <div class="royal-card-header">
+                <span class="royal-header-icon">🚚</span>
+                <span class="royal-header-title">Delivery & Status Management</span>
+                <span class="royal-header-decoration">✦</span>
+                <span style="margin-left: auto; font-size: 14px; color: #7A6B8A;">
+                    {% if sale.status == 'delivered' %}
+                        ✅ Completed
+                    {% elif sale.status == 'cancelled' %}
+                        ❌ Cancelled
+                    {% else %}
+                        🔄 In Progress
+                    {% endif %}
+                </span>
+            </div>
+            <div class="royal-card-body">
+                {% if sale.status == 'delivered' %}
+                    <!-- Delivered Status -->
+                    <div class="royal-delivery-completed">
+                        <div style="text-align:center;padding:20px;">
+                            <div style="font-size:64px;margin-bottom:10px;">✅</div>
+                            <h3 style="font-family:'Playfair Display',serif;color:#2E7D5E;margin:0 0 5px;">Order Delivered!</h3>
+                            <p style="color:#7A6B8A;font-size:16px;">
+                                <i class="bi bi-calendar3"></i> Delivered on {{ sale.delivery_date|date:"F d, Y H:i" }}
+                            </p>
+                            {% if sale.tracking_number %}
+                                <div style="background:#F5ECFA;border-radius:12px;padding:12px 20px;display:inline-block;margin-top:5px;">
+                                    <span style="font-weight:600;color:#4A3F5C;">
+                                        <i class="bi bi-box"></i> Tracking: {{ sale.tracking_number }}
+                                    </span>
+                                    {% if sale.courier_name %}
+                                        <span style="color:#7A6B8A;margin-left:10px;">
+                                            ({{ sale.courier_name }})
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% elif sale.status == 'cancelled' %}
+                    <!-- Cancelled Status -->
+                    <div class="royal-delivery-cancelled">
+                        <div style="text-align:center;padding:20px;">
+                            <div style="font-size:64px;margin-bottom:10px;">❌</div>
+                            <h3 style="font-family:'Playfair Display',serif;color:#7D2E2E;margin:0 0 5px;">Order Cancelled</h3>
+                            <p style="color:#7A6B8A;font-size:16px;">
+                                This order has been cancelled and cannot be processed further.
+                            </p>
+                        </div>
+                    </div>
+                {% else %}
+                    <!-- Status Timeline -->
+                    <div class="royal-status-timeline">
+                        <div class="royal-timeline">
+                            <!-- Step 1: Order Received -->
+                            <div class="royal-timeline-item {% if sale.status == 'pending' or sale.status == 'processing' or sale.status == 'shipped' or sale.status == 'out_for_delivery' %}active{% endif %}">
+                                <div class="royal-timeline-icon">
+                                    <span>🔄</span>
+                                </div>
+                                <div class="royal-timeline-content">
+                                    <h6>Order Received</h6>
+                                    <small>{{ sale.created_at|date:"M d, H:i" }}</small>
+                                    {% if sale.status == 'pending' %}
+                                        <span class="royal-current-status">● Currently here</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Step 2: Processing -->
+                            <div class="royal-timeline-item {% if sale.status == 'processing' or sale.status == 'shipped' or sale.status == 'out_for_delivery' %}active{% endif %}">
+                                <div class="royal-timeline-icon">
+                                    <span>📦</span>
+                                </div>
+                                <div class="royal-timeline-content">
+                                    <h6>Processing</h6>
+                                    <small>Packing and preparing your order</small>
+                                    {% if sale.status == 'processing' %}
+                                        <span class="royal-current-status">● Currently here</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Step 3: Shipped -->
+                            <div class="royal-timeline-item {% if sale.status == 'shipped' or sale.status == 'out_for_delivery' %}active{% endif %}">
+                                <div class="royal-timeline-icon">
+                                    <span>🚚</span>
+                                </div>
+                                <div class="royal-timeline-content">
+                                    <h6>Shipped</h6>
+                                    {% if sale.tracking_number %}
+                                        <small><i class="bi bi-box"></i> Tracking: {{ sale.tracking_number }}</small>
+                                    {% else %}
+                                        <small>Order has been shipped</small>
+                                    {% endif %}
+                                    {% if sale.status == 'shipped' %}
+                                        <span class="royal-current-status">● Currently here</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Step 4: Out for Delivery -->
+                            <div class="royal-timeline-item {% if sale.status == 'out_for_delivery' %}active{% endif %}">
+                                <div class="royal-timeline-icon">
+                                    <span>🚛</span>
+                                </div>
+                                <div class="royal-timeline-content">
+                                    <h6>Out for Delivery</h6>
+                                    {% if sale.courier_name %}
+                                        <small><i class="bi bi-truck"></i> Courier: {{ sale.courier_name }}</small>
+                                    {% else %}
+                                        <small>Your order is on its way!</small>
+                                    {% endif %}
+                                    {% if sale.status == 'out_for_delivery' %}
+                                        <span class="royal-current-status">● Currently here</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Step 5: Delivered -->
+                            <div class="royal-timeline-item {% if sale.status == 'delivered' %}active delivered{% endif %}">
+                                <div class="royal-timeline-icon">
+                                    <span>✅</span>
+                                </div>
+                                <div class="royal-timeline-content">
+                                    <h6>Delivered</h6>
+                                    <small>Order completed successfully</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr style="border-color:#E8D5F5;margin:25px 0;">
+
+                    <!-- Update Status Form -->
+                    <div class="royal-status-update-form">
+                        <h6 style="font-family:'Playfair Display',serif;color:#4A3F5C;margin-bottom:15px;">
+                            <i class="bi bi-pencil"></i> Update Order Status
+                        </h6>
+                        <form method="post" action="{% url 'core:update_order_status' sale.id %}">
+                            {% csrf_token %}
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="royal-form-label">
+                                        <i class="bi bi-arrow-right-circle"></i> Status
+                                    </label>
+                                    <select name="status" class="royal-form-select">
+                                        <option value="pending" {% if sale.status == 'pending' %}selected{% endif %}>🔄 Pending</option>
+                                        <option value="processing" {% if sale.status == 'processing' %}selected{% endif %}>📦 Processing</option>
+                                        <option value="shipped" {% if sale.status == 'shipped' %}selected{% endif %}>🚚 Shipped</option>
+                                        <option value="out_for_delivery" {% if sale.status == 'out_for_delivery' %}selected{% endif %}>🚛 Out for Delivery</option>
+                                        <option value="delivered" {% if sale.status == 'delivered' %}selected{% endif %}>✅ Delivered</option>
+                                        <option value="cancelled" {% if sale.status == 'cancelled' %}selected{% endif %}>❌ Cancelled</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="royal-form-label">
+                                        <i class="bi bi-box"></i> Tracking Number
+                                    </label>
+                                    <input type="text" name="tracking_number" class="royal-form-input" value="{{ sale.tracking_number }}" placeholder="Enter tracking number">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="royal-form-label">
+                                        <i class="bi bi-truck"></i> Courier Name
+                                    </label>
+                                    <input type="text" name="courier_name" class="royal-form-input" value="{{ sale.courier_name }}" placeholder="e.g., DHL, FedEx">
+                                </div>
+                                <div class="col-12">
+                                    <label class="royal-form-label">
+                                        <i class="bi bi-chat"></i> Delivery Notes
+                                    </label>
+                                    <textarea name="delivery_notes" class="royal-form-textarea" rows="2" placeholder="Special delivery instructions...">{{ sale.delivery_notes }}</textarea>
+                                </div>
+                                <div class="col-12">
+                                    <button type="submit" class="btn-royal-primary" style="padding:12px 30px;">
+                                        <i class="bi bi-save"></i> Update Status
+                                    </button>
+                                    <button type="reset" class="btn-royal-outline" style="padding:12px 30px;margin-left:10px;">
+                                        <i class="bi bi-arrow-counterclockwise"></i> Reset
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column - Order Information -->
+    <div class="col-lg-4">
+        <div class="royal-card">
+            <div class="royal-card-header">
+                <span class="royal-header-icon">ℹ️</span>
+                <span class="royal-header-title">Order Information</span>
+                <span class="royal-header-decoration">✦</span>
+            </div>
+            <div class="royal-card-body">
+                <!-- Invoice Number -->
+                <div class="royal-info-item">
+                    <div class="royal-info-label"><i class="bi bi-receipt"></i> Invoice Number</div>
+                    <div class="royal-info-value royal-invoice">{{ sale.invoice_number }}</div>
+                </div>
+
+                <!-- Customer -->
+                <div class="royal-info-item">
+                    <div class="royal-info-label"><i class="bi bi-person"></i> Customer</div>
+                    <div class="royal-info-value">
+                        {% if sale.customer %}
+                            <span class="royal-customer-name">👸 {{ sale.customer.name }}</span>
+                            {% if sale.customer.email %}
+                                <br><small style="color:#7A6B8A;font-size:13px;">
+                                    <i class="bi bi-envelope"></i> {{ sale.customer.email }}
+                                </small>
+                            {% endif %}
+                            {% if sale.customer.phone %}
+                                <br><small style="color:#7A6B8A;font-size:13px;">
+                                    <i class="bi bi-phone"></i> {{ sale.customer.phone }}
+                                </small>
+                            {% endif %}
+                        {% else %}
+                            <span class="royal-walkin">🚶 Walk-in Customer</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Delivery Address -->
+                <div class="royal-info-item">
+                    <div class="royal-info-label"><i class="bi bi-geo-alt"></i> Delivery Address</div>
+                    <div class="royal-info-value">
+                        {% if sale.delivery_address %}
+                            <span style="color:#4A3F5C;">{{ sale.delivery_address }}</span>
+                        {% else %}
+                            <span style="color:#7A6B8A;font-style:italic;">No delivery address provided</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Payment Method -->
+                <div class="royal-info-item">
+                    <div class="royal-info-label"><i class="bi bi-credit-card"></i> Payment Method</div>
+                    <div class="royal-info-value">
+                        <span class="royal-payment-badge">
+                            {% if sale.payment_method == 'cash' %}💵 Cash
+                            {% elif sale.payment_method == 'card' %}💳 Card
+                            {% elif sale.payment_method == 'mobile' %}📱 Mobile Money
+                            {% else %}💳 {{ sale.payment_method|title }}
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Status -->
+                <div class="royal-info-item">
+                    <div class="royal-info-label"><i class="bi bi-check-circle"></i> Order Status</div>
+                    <div class="royal-info-value">
+                        {% if sale.status == 'delivered' %}
+                            <span class="royal-status-badge completed">✅ Delivered</span>
+                        {% elif sale.status == 'pending' %}
+                            <span class="royal-status-badge pending">🔄 Pending</span>
+                        {% elif sale.status == 'processing' %}
+                            <span class="royal-status-badge processing">📦 Processing</span>
+                        {% elif sale.status == 'shipped' %}
+                            <span class="royal-status-badge shipped">🚚 Shipped</span>
+                        {% elif sale.status == 'out_for_delivery' %}
+                            <span class="royal-status-badge out-for-delivery">🚛 Out for Delivery</span>
+                        {% else %}
+                            <span class="royal-status-badge cancelled">❌ Cancelled</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Date -->
+                <div class="royal-info-item">
+                    <div class="royal-info-label"><i class="bi bi-calendar3"></i> Order Date</div>
+                    <div class="royal-info-value">
+                        <i class="bi bi-clock"></i> {{ sale.created_at|date:"F d, Y" }}
+                        <br>
+                        <small style="color:#7A6B8A;">{{ sale.created_at|date:"H:i A" }}</small>
+                    </div>
+                </div>
+
+                <!-- Staff -->
+                <div class="royal-info-item">
+                    <div class="royal-info-label"><i class="bi bi-person-badge"></i> Processed By</div>
+                    <div class="royal-info-value">
+                        <span class="royal-staff-name">👑 {{ sale.user.get_full_name|default:sale.user.username }}</span>
+                    </div>
+                </div>
+
+                <!-- Notes -->
+                {% if sale.notes %}
+                    <div class="royal-info-item">
+                        <div class="royal-info-label"><i class="bi bi-sticky"></i> Notes</div>
+                        <div class="royal-info-value royal-notes">
+                            <i class="bi bi-chat"></i> {{ sale.notes }}
+                        </div>
+                    </div>
+                {% endif %}
+
+                <!-- Actions -->
+                <div class="royal-action-buttons">
+                    <a href="{% url 'core:sale_list' %}" class="btn-royal-outline" style="flex:1;">
+                        <i class="bi bi-arrow-left"></i> Back
+                    </a>
+                    <button class="btn-royal-primary" onclick="window.print()" style="flex:1;">
+                        <i class="bi bi-printer"></i> Print
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Royal Footer Decoration -->
+<div class="royal-footer-decoration text-center mt-4">
+    
+    <p style="color: var(--text-soft); font-size: 13px; margin-top: 10px; letter-spacing: 2px;">
+        ✦ {{ store_settings.store_name|default:"Vera's Choice" }} —  Transaction #{{ sale.invoice_number }} ✦
+    </p>
+</div>
+
+<style>
+/* Royal Delivery & Status Styles */
+
+/* Royal Header */
+.royal-header {
+    position: relative;
+}
+
+.royal-divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 15px;
+}
+
+.royal-line {
+    flex: 1;
+    max-width: 80px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #D4B8E0, #B896D4, #D4B8E0, transparent);
+}
+
+.royal-crown {
+    font-size: 28px;
+    animation: royal-float 3s ease-in-out infinite;
+}
+
+.royal-diamond {
+    font-size: 18px;
+    color: #D4B8E0;
+    animation: royal-sparkle 2s ease-in-out infinite;
+}
+
+.royal-rose {
+    font-size: 22px;
+    animation: royal-float 2.5s ease-in-out infinite;
+    animation-delay: 0.5s;
+}
+
+@keyframes royal-float {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-5px) rotate(5deg); }
+}
+
+@keyframes royal-sparkle {
+    0%, 100% { opacity: 0.4; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.3); }
+}
+
+/* Royal Cards */
+.royal-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 24px;
+    border: 1px solid rgba(232, 213, 245, 0.2);
+    box-shadow: 0 4px 30px rgba(184, 150, 212, 0.06);
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.royal-card:hover {
+    box-shadow: 0 8px 40px rgba(184, 150, 212, 0.12);
+}
+
+.royal-card-header {
+    padding: 20px 28px;
+    background: linear-gradient(135deg, rgba(245, 236, 250, 0.5), rgba(232, 213, 245, 0.2));
+    border-bottom: 2px solid rgba(232, 213, 245, 0.2);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: 'Playfair Display', serif;
+}
+
+.royal-header-icon {
+    font-size: 20px;
+}
+
+.royal-header-title {
+    flex: 1;
+    font-size: 18px;
+    font-weight: 600;
+    color: #4A3F5C;
+}
+
+.royal-header-decoration {
+    font-size: 16px;
+    color: #D4B8E0;
+}
+
+.royal-card-body {
+    padding: 25px 28px;
+}
+
+/* Royal Table */
+.royal-table {
+    width: 100%;
+    border-collapse: collapse;
+    color: #4A3F5C;
+}
+
+.royal-table thead th {
+    padding: 14px 20px;
+    background: #F5ECFA;
+    font-weight: 600;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #7A6B8A;
+    border-bottom: 2px solid #E8D5F5;
+    text-align: left;
+}
+
+.royal-table tbody td {
+    padding: 12px 20px;
+    border-bottom: 1px solid rgba(232, 213, 245, 0.15);
+    vertical-align: middle;
+}
+
+.royal-table tbody tr {
+    transition: all 0.3s ease;
+}
+
+.royal-table tbody tr:hover {
+    background: #F8F0FA;
+}
+
+.royal-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.royal-product-cell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.royal-product-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: #F5ECFA;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #D4B8E0;
+    font-size: 16px;
+}
+
+.royal-product-name {
+    font-weight: 500;
+    color: #4A3F5C;
+}
+
+.royal-price {
+    color: #7A6B8A;
+}
+
+.royal-total-price {
+    color: #B896D4;
+    font-weight: 700;
+    font-family: 'Playfair Display', serif;
+}
+
+.royal-quantity-badge {
+    display: inline-block;
+    padding: 2px 12px;
+    background: #F5ECFA;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 14px;
+    color: #4A3F5C;
+}
+
+/* Table Footer */
+.royal-table-footer tr td {
+    padding: 10px 20px;
+    font-weight: 600;
+}
+.royal-subtotal-label { color: #7A6B8A; font-weight: 500; }
+.royal-subtotal-value { color: #4A3F5C; font-weight: 600; }
+.royal-discount-label { color: #D47A7A; font-weight: 500; }
+.royal-discount-value { color: #D47A7A; font-weight: 600; }
+.royal-tax-label { color: #7A6B8A; font-weight: 500; }
+.royal-tax-value { color: #4A3F5C; font-weight: 600; }
+.royal-grand-total-row td { padding-top: 16px; border-top: 2px solid #E8D5F5; }
+.royal-grand-total-label { font-size: 18px; font-weight: 700; color: #4A3F5C; font-family: 'Playfair Display', serif; }
+.royal-grand-total-value { font-size: 22px; font-weight: 700; color: #B896D4; font-family: 'Playfair Display', serif; }
+
+/* Timeline */
+.royal-timeline {
+    position: relative;
+    padding-left: 40px;
+}
+
+.royal-timeline::before {
+    content: '';
+    position: absolute;
+    left: 20px;
+    top: 10px;
+    bottom: 10px;
+    width: 3px;
+    background: linear-gradient(180deg, #D4B8E0, #B896D4);
+    border-radius: 3px;
+}
+
+.royal-timeline-item {
+    position: relative;
+    padding: 10px 0 10px 30px;
+    opacity: 0.3;
+    transition: all 0.5s ease;
+}
+
+.royal-timeline-item.active {
+    opacity: 1;
+}
+
+.royal-timeline-item.delivered {
+    opacity: 1;
+}
+
+.royal-timeline-item.delivered .royal-timeline-icon {
+    background: #E8F5EC;
+    border-color: #7EC8A0;
+}
+
+.royal-timeline-icon {
+    position: absolute;
+    left: -28px;
+    top: 10px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #F5ECFA;
+    border: 3px solid #D4B8E0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    transition: all 0.4s ease;
+    box-shadow: 0 2px 10px rgba(184, 150, 212, 0.1);
+}
+
+.royal-timeline-item.active .royal-timeline-icon {
+    background: #E8D5F5;
+    border-color: #B896D4;
+    box-shadow: 0 0 25px rgba(184, 150, 212, 0.25);
+    transform: scale(1.05);
+}
+
+.royal-timeline-content h6 {
+    margin: 0;
+    font-weight: 600;
+    color: #4A3F5C;
+    font-size: 15px;
+}
+
+.royal-timeline-content small {
+    color: #7A6B8A;
+    font-size: 13px;
+    display: block;
+    margin-top: 2px;
+}
+
+.royal-current-status {
+    display: inline-block;
+    margin-top: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #B896D4;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* Delivery Status Cards */
+.royal-delivery-completed {
+    background: rgba(232, 245, 236, 0.5);
+    border-radius: 16px;
+    border: 2px solid #7EC8A0;
+    padding: 10px;
+}
+
+.royal-delivery-cancelled {
+    background: rgba(245, 232, 232, 0.5);
+    border-radius: 16px;
+    border: 2px solid #D47A7A;
+    padding: 10px;
+}
+
+/* Info Items */
+.royal-info-item {
+    margin-bottom: 18px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid rgba(232, 213, 245, 0.15);
+}
+
+.royal-info-item:last-of-type {
+    border-bottom: none;
+}
+
+.royal-info-label {
+    font-size: 13px;
+    color: #7A6B8A;
+    font-weight: 500;
+    margin-bottom: 4px;
+    letter-spacing: 0.5px;
+}
+
+.royal-info-label i {
+    margin-right: 6px;
+    color: #B896D4;
+}
+
+.royal-info-value {
+    font-weight: 500;
+    color: #4A3F5C;
+    font-size: 15px;
+}
+
+.royal-invoice {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 18px;
+    color: #B896D4;
+}
+
+.royal-customer-name {
+    font-weight: 600;
+    color: #4A3F5C;
+}
+
+.royal-walkin {
+    color: #7A6B8A;
+}
+
+.royal-payment-badge {
+    display: inline-block;
+    padding: 4px 14px;
+    background: #F5ECFA;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+/* Status Badges */
+.royal-status-badge {
+    display: inline-block;
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 14px;
+}
+.royal-status-badge.completed {
+    background: #E8F5EC;
+    color: #2E7D5E;
+}
+.royal-status-badge.pending {
+    background: #F5F0E8;
+    color: #7D6B2E;
+}
+.royal-status-badge.processing {
+    background: #E8ECF5;
+    color: #2E4A7D;
+}
+.royal-status-badge.shipped {
+    background: #E8F0F5;
+    color: #2E6B7D;
+}
+.royal-status-badge.out-for-delivery {
+    background: #F5ECE8;
+    color: #7D5B2E;
+}
+.royal-status-badge.cancelled {
+    background: #F5E8E8;
+    color: #7D2E2E;
+}
+
+/* Form */
+.royal-form-label {
+    display: block;
+    font-weight: 600;
+    color: #4A3F5C;
+    font-size: 14px;
+    margin-bottom: 6px;
+    letter-spacing: 0.3px;
+}
+
+.royal-form-label i {
+    color: #B896D4;
+    margin-right: 6px;
+}
+
+.royal-form-select {
+    width: 100%;
+    padding: 10px 16px;
+    border-radius: 14px;
+    border: 2px solid #E8D5F5;
+    background: #FFFAF8;
+    font-family: 'Quicksand', sans-serif;
+    font-weight: 500;
+    color: #4A3F5C;
+    transition: all 0.3s ease;
+    font-size: 15px;
+    appearance: auto;
+    cursor: pointer;
+}
+
+.royal-form-select:focus {
+    border-color: #B896D4;
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(184, 150, 212, 0.12);
+    background: #FFFFFF;
+}
+
+.royal-form-input {
+    width: 100%;
+    padding: 10px 16px;
+    border-radius: 14px;
+    border: 2px solid #E8D5F5;
+    background: #FFFAF8;
+    font-family: 'Quicksand', sans-serif;
+    font-weight: 500;
+    color: #4A3F5C;
+    transition: all 0.3s ease;
+    font-size: 15px;
+}
+
+.royal-form-input:focus {
+    border-color: #B896D4;
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(184, 150, 212, 0.12);
+    background: #FFFFFF;
+}
+
+.royal-form-textarea {
+    width: 100%;
+    padding: 10px 16px;
+    border-radius: 14px;
+    border: 2px solid #E8D5F5;
+    background: #FFFAF8;
+    font-family: 'Quicksand', sans-serif;
+    font-weight: 500;
+    color: #4A3F5C;
+    transition: all 0.3s ease;
+    font-size: 15px;
+    resize: vertical;
+}
+
+.royal-form-textarea:focus {
+    border-color: #B896D4;
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(184, 150, 212, 0.12);
+    background: #FFFFFF;
+}
+
+/* Buttons */
+.btn-royal-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 24px;
+    background: linear-gradient(135deg, #D4B8E0, #B896D4);
+    border: none;
+    border-radius: 14px;
+    color: white;
+    font-weight: 600;
+    font-family: 'Quicksand', sans-serif;
+    font-size: 14px;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    cursor: pointer;
+    text-decoration: none;
+    box-shadow: 0 4px 15px rgba(184, 150, 212, 0.25);
+}
+
+.btn-royal-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 30px rgba(184, 150, 212, 0.35);
+    color: white;
+    text-decoration: none;
+}
+
+.btn-royal-outline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 24px;
+    border: 2px solid #D4B8E0;
+    border-radius: 14px;
+    color: #4A3F5C;
+    font-weight: 600;
+    font-family: 'Quicksand', sans-serif;
+    font-size: 14px;
+    background: transparent;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.btn-royal-outline:hover {
+    background: #F5ECFA;
+    border-color: #B896D4;
+    transform: translateY(-3px);
+    box-shadow: 0 4px 20px rgba(184, 150, 212, 0.15);
+    color: #4A3F5C;
+    text-decoration: none;
+}
+
+/* Action Buttons */
+.royal-action-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 2px solid rgba(232, 213, 245, 0.2);
+}
+
+/* Footer */
+.royal-footer-decoration {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(232, 213, 245, 0.2);
+}
+
+/* Responsive */
+@media (max-width: 991px) {
+    .royal-card-body {
+        padding: 18px 20px;
+    }
+    .royal-action-buttons {
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 768px) {
+    .royal-table thead {
+        display: none;
+    }
+    .royal-table tbody td {
+        display: block;
+        padding: 10px 16px;
+        border-bottom: none;
+    }
+    .royal-table tbody td:before {
+        content: attr(data-label);
+        display: inline-block;
+        font-weight: 600;
+        width: 120px;
+        color: #7A6B8A;
+    }
+    .royal-table tbody tr {
+        border-bottom: 2px solid #E8D5F5;
+        padding: 10px 0;
+        display: block;
+    }
+    .royal-action-buttons {
+        flex-direction: column;
+    }
+    .royal-card-header {
+        flex-wrap: wrap;
+        padding: 15px 18px;
+    }
+    .royal-header-title {
+        font-size: 16px;
+    }
+    .royal-timeline {
+        padding-left: 30px;
+    }
+    .royal-timeline::before {
+        left: 15px;
+    }
+    .royal-timeline-icon {
+        left: -23px;
+        width: 34px;
+        height: 34px;
+        font-size: 15px;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .sidebar, .topbar, .royal-action-buttons, .royal-footer-decoration,
+    .royal-status-update-form, .btn-royal-primary, .btn-royal-outline {
+        display: none !important;
+    }
+    .main { margin-left: 0 !important; }
+    .royal-card { box-shadow: none !important; border: 1px solid #E8D5F5 !important; }
+    body { background: white !important; }
+}
+</style>
+{% endblock %}

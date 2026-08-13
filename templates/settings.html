@@ -1,0 +1,1334 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Settings - {{ store_settings.store_name|default:"Vera's Choice" }}{% endblock %}
+{% block page_title %}Settings{% endblock %}
+
+{% block content %}
+<!-- Royal Header -->
+<div class="royal-header text-center mb-4">
+    
+    <h2 style="font-family: 'Playfair Display', serif; color: #4A3F5C; font-weight: 700; letter-spacing: 2px;">
+    Settings
+    </h2>
+    <p style="color: #7A6B8A; font-weight: 300; letter-spacing: 1px; font-size: 16px;">
+        <i class="bi bi-gem"></i> Customize your royal boutique settings <i class="bi bi-gem"></i>
+    </p>
+</div>
+
+<!-- Top Navigation Tabs -->
+<div class="royal-tabs-container mb-4">
+    <div class="royal-tabs">
+        <button class="royal-tab active" data-tab="store" onclick="showSettingsTab('store')">
+            <i class="bi bi-shop"></i>
+            <span>Store</span>
+        </button>
+       
+        <button class="royal-tab" data-tab="payment" onclick="showSettingsTab('payment')">
+            <i class="bi bi-credit-card"></i>
+            <span>Payments</span>
+        </button>
+       
+        <button class="royal-tab" data-tab="tax" onclick="showSettingsTab('tax')">
+            <i class="bi bi-percent"></i>
+            <span>Tax</span>
+        </button>
+       
+       
+        <button class="royal-tab" data-tab="backup" onclick="showSettingsTab('backup')">
+            <i class="bi bi-database"></i>
+            <span>Backup</span>
+        </button>
+        <button class="royal-tab" data-tab="security" onclick="showSettingsTab('security')">
+            <i class="bi bi-shield-lock"></i>
+            <span>Security</span>
+        </button>
+    </div>
+</div>
+
+<!-- Settings Content -->
+<div class="settings-content">
+    <!-- Store Settings -->
+    <div id="store" class="settings-tab active">
+        <div class="royal-card">
+            <div class="royal-card-header">
+                <span class="royal-header-icon">🏪</span>
+                <span class="royal-header-title">Store Settings</span>
+                <span class="royal-header-decoration">✦</span>
+                <span style="margin-left:auto;font-size:12px;color:#7A6B8A;">
+                    <i class="bi bi-check-circle" style="color:#7EC8A0;"></i> Last saved: Today
+                </span>
+            </div>
+            <div class="royal-card-body">
+                <form method="post" action="{% url 'core:update_store_settings' %}" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="royal-form-group">
+                                <label class="royal-form-label">
+                                    <i class="bi bi-building"></i> Store Name
+                                </label>
+                                <input type="text" name="store_name" class="royal-form-input-modern" value="{{ store_settings.store_name|default:"Vera's Choice" }}" placeholder="Your store name">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="royal-form-group">
+                                <label class="royal-form-label">
+                                    <i class="bi bi-tag"></i> Store Tagline
+                                </label>
+                                <input type="text" name="store_tagline" class="royal-form-input-modern" value="{{ store_settings.store_tagline|default:"Royal Boutique POS System" }}" placeholder="Your tagline">
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="royal-form-group">
+                                <label class="royal-form-label">
+                                    <i class="bi bi-geo-alt"></i> Store Address
+                                </label>
+                                <textarea name="store_address" class="royal-form-textarea-modern" rows="2" placeholder="Your store address">{{ store_settings.store_address|default:"123 Royal Street, Boutique District, City" }}</textarea>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="royal-form-group">
+                                <label class="royal-form-label">
+                                    <i class="bi bi-telephone"></i> Phone Number
+                                </label>
+                                <input type="tel" name="store_phone" class="royal-form-input-modern" value="{{ store_settings.store_phone|default:"+1 234 567 8900" }}" placeholder="Your phone number">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="royal-form-group">
+                                <label class="royal-form-label">
+                                    <i class="bi bi-envelope"></i> Email Address
+                                </label>
+                                <input type="email" name="store_email" class="royal-form-input-modern" value="{{ store_settings.store_email|default:"info@veraschoice.com" }}" placeholder="Your email">
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="royal-form-group">
+                                <label class="royal-form-label">
+                                    <i class="bi bi-image"></i> Store Logo
+                                </label>
+                                <div class="royal-logo-upload-modern">
+                                    <div class="royal-logo-preview-modern" id="logoPreview">
+                                        {% if store_settings.store_logo %}
+                                            <img src="{{ store_settings.store_logo.url }}" alt="Logo" style="width:100%;height:100%;object-fit:cover;border-radius:14px;">
+                                        {% else %}
+                                            <i class="bi bi-image"></i>
+                                            <span>No logo uploaded</span>
+                                        {% endif %}
+                                    </div>
+                                    <input type="file" name="store_logo" class="royal-form-file-modern" accept="image/*" id="logoInput">
+                                    <small class="royal-help-text">Upload your store logo (PNG, JPG, SVG) - Recommended size: 200x200px</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="royal-form-actions-modern">
+                                <button type="submit" class="btn-royal-primary-modern">
+                                    <i class="bi bi-save"></i> Save Store Settings
+                                </button>
+                                <button type="reset" class="btn-royal-outline-modern">
+                                    <i class="bi bi-arrow-counterclockwise"></i> Reset
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notifications -->
+    <div id="notifications" class="settings-tab" style="display:none;">
+        <div class="royal-card">
+            <div class="royal-card-header">
+                <span class="royal-header-icon">🔔</span>
+                <span class="royal-header-title">Notification Preferences</span>
+                <span class="royal-header-decoration">✦</span>
+            </div>
+            <div class="royal-card-body">
+                <form method="post" action="{% url 'core:update_notification_settings' %}">
+                    {% csrf_token %}
+                    <div class="royal-form-group">
+                        <div class="royal-toggle-group-modern">
+                            <div class="royal-toggle-item-modern">
+                                <div>
+                                    <div style="font-weight:600;color:#4A3F5C;">
+                                        <i class="bi bi-cart-check" style="color:#B896D4;"></i> New Order Alerts
+                                    </div>
+                                    <small style="color:#7A6B8A;">Get notified when a new order is placed</small>
+                                </div>
+                                <label class="royal-toggle-modern">
+                                    <input type="checkbox" name="new_order_alerts" {% if notification_settings.new_order_alerts %}checked{% endif %}>
+                                    <span class="royal-toggle-slider-modern"></span>
+                                </label>
+                            </div>
+                            <div class="royal-toggle-item-modern">
+                                <div>
+                                    <div style="font-weight:600;color:#4A3F5C;">
+                                        <i class="bi bi-exclamation-triangle" style="color:#F5C842;"></i> Low Stock Alerts
+                                    </div>
+                                    <small style="color:#7A6B8A;">Get notified when products are low in stock</small>
+                                </div>
+                                <label class="royal-toggle-modern">
+                                    <input type="checkbox" name="low_stock_alerts" {% if notification_settings.low_stock_alerts %}checked{% endif %}>
+                                    <span class="royal-toggle-slider-modern"></span>
+                                </label>
+                            </div>
+                            <div class="royal-toggle-item-modern">
+                                <div>
+                                    <div style="font-weight:600;color:#4A3F5C;">
+                                        <i class="bi bi-truck" style="color:#2E6B7D;"></i> Delivery Updates
+                                    </div>
+                                    <small style="color:#7A6B8A;">Get notified about delivery status changes</small>
+                                </div>
+                                <label class="royal-toggle-modern">
+                                    <input type="checkbox" name="delivery_updates" {% if notification_settings.delivery_updates %}checked{% endif %}>
+                                    <span class="royal-toggle-slider-modern"></span>
+                                </label>
+                            </div>
+                            <div class="royal-toggle-item-modern">
+                                <div>
+                                    <div style="font-weight:600;color:#4A3F5C;">
+                                        <i class="bi bi-bar-chart" style="color:#B896D4;"></i> Daily Sales Report
+                                    </div>
+                                    <small style="color:#7A6B8A;">Receive daily sales summary via email</small>
+                                </div>
+                                <label class="royal-toggle-modern">
+                                    <input type="checkbox" name="daily_sales_report" {% if notification_settings.daily_sales_report %}checked{% endif %}>
+                                    <span class="royal-toggle-slider-modern"></span>
+                                </label>
+                            </div>
+                            <div class="royal-toggle-item-modern">
+                                <div>
+                                    <div style="font-weight:600;color:#4A3F5C;">
+                                        <i class="bi bi-shield-check" style="color:#2E7D5E;"></i> Security Alerts
+                                    </div>
+                                    <small style="color:#7A6B8A;">Get notified about security events</small>
+                                </div>
+                                <label class="royal-toggle-modern">
+                                    <input type="checkbox" name="security_alerts" {% if notification_settings.security_alerts %}checked{% endif %}>
+                                    <span class="royal-toggle-slider-modern"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="royal-form-actions-modern">
+                        <button type="submit" class="btn-royal-primary-modern">
+                            <i class="bi bi-save"></i> Save Preferences
+                        </button>
+                        <button type="reset" class="btn-royal-outline-modern">
+                            <i class="bi bi-arrow-counterclockwise"></i> Reset
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Methods -->
+    <div id="payment" class="settings-tab" style="display:none;">
+        <div class="royal-card">
+            <div class="royal-card-header">
+                <span class="royal-header-icon">💳</span>
+                <span class="royal-header-title">Payment Methods</span>
+                <span class="royal-header-decoration">✦</span>
+            </div>
+            <div class="royal-card-body">
+                <form method="post" action="{% url 'core:update_payment_settings' %}">
+                    {% csrf_token %}
+                    <div class="royal-payment-methods-modern">
+                        <div class="royal-payment-item-modern">
+                            <div class="d-flex align-items-center gap-3">
+                                <span style="font-size:28px;">💵</span>
+                                <div>
+                                    <div style="font-weight:600;color:#4A3F5C;">Cash</div>
+                                    <small style="color:#7A6B8A;">Accept cash payments</small>
+                                </div>
+                            </div>
+                            <label class="royal-toggle-modern">
+                                <input type="checkbox" name="cash_enabled" {% if payment_settings.cash_enabled %}checked{% endif %}>
+                                <span class="royal-toggle-slider-modern"></span>
+                            </label>
+                        </div>
+                        <div class="royal-payment-item-modern">
+                            <div class="d-flex align-items-center gap-3">
+                                <span style="font-size:28px;">💳</span>
+                                <div>
+                                    <div style="font-weight:600;color:#4A3F5C;">Card Payment</div>
+                                    <small style="color:#7A6B8A;">Accept credit/debit cards</small>
+                                </div>
+                            </div>
+                            <label class="royal-toggle-modern">
+                                <input type="checkbox" name="card_enabled" {% if payment_settings.card_enabled %}checked{% endif %}>
+                                <span class="royal-toggle-slider-modern"></span>
+                            </label>
+                        </div>
+                        <div class="royal-payment-item-modern">
+                            <div class="d-flex align-items-center gap-3">
+                                <span style="font-size:28px;">📱</span>
+                                <div>
+                                    <div style="font-weight:600;color:#4A3F5C;">Mobile Money</div>
+                                    <small style="color:#7A6B8A;">Accept mobile money payments</small>
+                                </div>
+                            </div>
+                            <label class="royal-toggle-modern">
+                                <input type="checkbox" name="mobile_money_enabled" {% if payment_settings.mobile_money_enabled %}checked{% endif %}>
+                                <span class="royal-toggle-slider-modern"></span>
+                            </label>
+                        </div>
+                        <div class="royal-payment-item-modern">
+                            <div class="d-flex align-items-center gap-3">
+                                <span style="font-size:28px;">🪙</span>
+                                <div>
+                                    <div style="font-weight:600;color:#4A3F5C;">Cryptocurrency</div>
+                                    <small style="color:#7A6B8A;">Accept crypto payments (coming soon)</small>
+                                </div>
+                            </div>
+                            <label class="royal-toggle-modern">
+                                <input type="checkbox" name="crypto_enabled" disabled>
+                                <span class="royal-toggle-slider-modern"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="royal-form-actions-modern">
+                        <button type="submit" class="btn-royal-primary-modern">
+                            <i class="bi bi-save"></i> Save Payment Settings
+                        </button>
+                        <button type="reset" class="btn-royal-outline-modern">
+                            <i class="bi bi-arrow-counterclockwise"></i> Reset
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delivery Settings -->
+    <div id="delivery" class="settings-tab" style="display:none;">
+        <div class="royal-card">
+            <div class="royal-card-header">
+                <span class="royal-header-icon">🚚</span>
+                <span class="royal-header-title">Delivery Settings</span>
+                <span class="royal-header-decoration">✦</span>
+            </div>
+            <div class="royal-card-body">
+                <form method="post" action="{% url 'core:update_delivery_settings' %}">
+                    {% csrf_token %}
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="royal-form-group">
+                                <label class="royal-form-label">
+                                    <i class="bi bi-coin"></i> Delivery Fee
+                                </label>
+                                <div class="royal-input-group-modern">
+                                    <span class="royal-input-group-text">$</span>
+                                    <input type="number" name="delivery_fee" class="royal-form-input-modern" value="{{ delivery_settings.delivery_fee|default:"5.00" }}" step="0.01" placeholder="0.00">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="royal-form-group">
+                                <label class="royal-form-label">
+                                    <i class="bi bi-gift"></i> Free Delivery Threshold
+                                </label>
+                                <div class="royal-input-group-modern">
+                                    <span class="royal-input-group-text">$</span>
+                                    <input type="number" name="free_delivery_threshold" class="royal-form-input-modern" value="{{ delivery_settings.free_delivery_threshold|default:"50.00" }}" step="0.01" placeholder="0.00">
+                                </div>
+                                <small class="royal-help-text">Orders above this amount get free delivery</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="royal-form-group">
+                                <label class="royal-form-label">
+                                    <i class="bi bi-clock"></i> Estimated Delivery Time
+                                </label>
+                                <input type="text" name="delivery_days" class="royal-form-input-modern" value="{{ delivery_settings.delivery_days|default:"2-5 business days" }}" placeholder="e.g., 2-5 business days">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="royal-form-group">
+                                <label class="royal-form-label">
+                                    <i class="bi bi-truck"></i> Courier Partners
+                                </label>
+                                <input type="text" name="couriers" class="royal-form-input-modern" value="{{ delivery_settings.courier_partners|default:"DHL, FedEx, UPS" }}" placeholder="List your courier partners">
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="royal-form-group">
+                                <label class="royal-form-label">
+                                    <i class="bi bi-check-circle"></i> Enable Delivery
+                                </label>
+                                <div class="royal-toggle-item-modern">
+                                    <div>
+                                        <small style="color:#7A6B8A;">Enable delivery service for your store</small>
+                                    </div>
+                                    <label class="royal-toggle-modern">
+                                        <input type="checkbox" name="delivery_enabled" {% if delivery_settings.delivery_enabled %}checked{% endif %}>
+                                        <span class="royal-toggle-slider-modern"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="royal-form-actions-modern">
+                                <button type="submit" class="btn-royal-primary-modern">
+                                    <i class="bi bi-save"></i> Save Delivery Settings
+                                </button>
+                                <button type="reset" class="btn-royal-outline-modern">
+                                    <i class="bi bi-arrow-counterclockwise"></i> Reset
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tax & Discounts -->
+    <div id="tax" class="settings-tab" style="display:none;">
+        <div class="royal-card">
+            <div class="royal-card-header">
+                <span class="royal-header-icon">📊</span>
+                <span class="royal-header-title">Tax & Discount Settings</span>
+                <span class="royal-header-decoration">✦</span>
+            </div>
+            <div class="royal-card-body">
+                <form method="post" action="{% url 'core:update_tax_settings' %}">
+                    {% csrf_token %}
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="royal-form-group">
+                                <label class="royal-form-label">
+                                    <i class="bi bi-percent"></i> Tax Rate (%)
+                                </label>
+                                <input type="number" name="tax_rate" class="royal-form-input-modern" value="{{ tax_settings.tax_rate|default:"5.00" }}" step="0.01" min="0" max="100">
+                                <small class="royal-help-text">Current tax rate applied to all orders</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="royal-form-group">
+                                <label class="royal-form-label">
+                                    <i class="bi bi-tag"></i> Default Discount (%)
+                                </label>
+                                <input type="number" name="default_discount" class="royal-form-input-modern" value="{{ tax_settings.default_discount|default:"0" }}" step="0.01" min="0" max="100">
+                                <small class="royal-help-text">Default discount applied to all orders</small>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="royal-form-group">
+                                <label class="royal-form-label">
+                                    <i class="bi bi-list-check"></i> Discount Rules
+                                </label>
+                                <textarea name="discount_rules" class="royal-form-textarea-modern" rows="3" placeholder="Describe your discount rules...">{{ tax_settings.discount_rules|default:"• 10% off on orders above $100\n• Loyalty points redemption\n• Seasonal promotions\n• First-time customer discount: 15%" }}</textarea>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="royal-form-actions-modern">
+                                <button type="submit" class="btn-royal-primary-modern">
+                                    <i class="bi bi-save"></i> Save Tax Settings
+                                </button>
+                                <button type="reset" class="btn-royal-outline-modern">
+                                    <i class="bi bi-arrow-counterclockwise"></i> Reset
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+   
+
+   
+    <!-- Backup & Export -->
+    <div id="backup" class="settings-tab" style="display:none;">
+        <div class="royal-card">
+            <div class="royal-card-header">
+                <span class="royal-header-icon">💾</span>
+                <span class="royal-header-title">Backup & Export</span>
+                <span class="royal-header-decoration">✦</span>
+            </div>
+            <div class="royal-card-body">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="royal-backup-card-modern">
+                            <div style="font-size:40px;text-align:center;margin-bottom:10px;">💾</div>
+                            <h6 style="text-align:center;font-weight:600;color:#4A3F5C;">Database Backup</h6>
+                            <p style="text-align:center;color:#7A6B8A;font-size:14px;">Download a full backup of your database</p>
+                            <a href="{% url 'core:export_settings' %}" class="btn-royal-primary-modern w-100">
+                                <i class="bi bi-download"></i> Download Backup
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="royal-backup-card-modern">
+                            <div style="font-size:40px;text-align:center;margin-bottom:10px;">📊</div>
+                            <h6 style="text-align:center;font-weight:600;color:#4A3F5C;">Export All Data</h6>
+                            <p style="text-align:center;color:#7A6B8A;font-size:14px;">Export all store data as JSON</p>
+                            <a href="{% url 'core:export_settings' %}" class="btn-royal-primary-modern w-100">
+                                <i class="bi bi-download"></i> Export Data
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="royal-backup-card-modern">
+                            <div style="font-size:40px;text-align:center;margin-bottom:10px;">📤</div>
+                            <h6 style="text-align:center;font-weight:600;color:#4A3F5C;">Import Data</h6>
+                            <p style="text-align:center;color:#7A6B8A;font-size:14px;">Import data from backup file</p>
+                            <form method="post" action="{% url 'core:import_settings' %}" enctype="multipart/form-data">
+                                {% csrf_token %}
+                                <input type="file" name="import_file" class="royal-form-file-modern" style="margin-bottom:10px;" accept=".json,.csv">
+                                <button type="submit" class="btn-royal-primary-modern w-100">
+                                    <i class="bi bi-upload"></i> Import Data
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="royal-backup-card-modern">
+                            <div style="font-size:40px;text-align:center;margin-bottom:10px;">🔄</div>
+                            <h6 style="text-align:center;font-weight:600;color:#4A3F5C;">Auto Backup</h6>
+                            <p style="text-align:center;color:#7A6B8A;font-size:14px;">Schedule automatic backups</p>
+                            <div class="d-flex gap-2">
+                                <select class="royal-form-select-modern" style="flex:1;">
+                                    <option value="daily">Daily</option>
+                                    <option value="weekly" selected>Weekly</option>
+                                    <option value="monthly">Monthly</option>
+                                </select>
+                                <button class="btn-royal-primary-modern" onclick="alert('Auto backup scheduled!')">
+                                    <i class="bi bi-check"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Security Settings -->
+    <div id="security" class="settings-tab" style="display:none;">
+        <div class="royal-card">
+            <div class="royal-card-header">
+                <span class="royal-header-icon">🔒</span>
+                <span class="royal-header-title">Security Settings</span>
+                <span class="royal-header-decoration">✦</span>
+            </div>
+            <div class="royal-card-body">
+                <form method="post" action="{% url 'core:update_security_settings' %}">
+                    {% csrf_token %}
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="royal-form-group">
+                                <label class="royal-form-label">
+                                    <i class="bi bi-key"></i> Session Timeout (minutes)
+                                </label>
+                                <input type="number" name="session_timeout" class="royal-form-input-modern" value="{{ security_settings.session_timeout|default:"60" }}" min="5" max="480">
+                                <small class="royal-help-text">Auto-logout after inactivity</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="royal-form-group">
+                                <label class="royal-form-label">
+                                    <i class="bi bi-shield"></i> Two-Factor Authentication
+                                </label>
+                                <div class="royal-toggle-item-modern">
+                                    <div>
+                                        <small style="color:#7A6B8A;">Enable 2FA for admin accounts</small>
+                                    </div>
+                                    <label class="royal-toggle-modern">
+                                        <input type="checkbox" name="two_factor_auth" {% if security_settings.two_factor_auth %}checked{% endif %}>
+                                        <span class="royal-toggle-slider-modern"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="royal-form-group">
+                                <label class="royal-form-label">
+                                    <i class="bi bi-password"></i> Password Policy
+                                </label>
+                                <div style="display:flex;flex-direction:column;gap:8px;padding:10px 0;">
+                                    <div class="royal-toggle-item-modern" style="border:none;padding:5px 0;">
+                                        <div>
+                                            <small style="color:#4A3F5C;">Minimum 8 characters</small>
+                                        </div>
+                                        <label class="royal-toggle-modern">
+                                            <input type="checkbox" name="password_min_length" {% if security_settings.password_min_length %}checked{% endif %}>
+                                            <span class="royal-toggle-slider-modern"></span>
+                                        </label>
+                                    </div>
+                                    <div class="royal-toggle-item-modern" style="border:none;padding:5px 0;">
+                                        <div>
+                                            <small style="color:#4A3F5C;">Require uppercase & lowercase</small>
+                                        </div>
+                                        <label class="royal-toggle-modern">
+                                            <input type="checkbox" name="password_case_required" {% if security_settings.password_case_required %}checked{% endif %}>
+                                            <span class="royal-toggle-slider-modern"></span>
+                                        </label>
+                                    </div>
+                                    <div class="royal-toggle-item-modern" style="border:none;padding:5px 0;">
+                                        <div>
+                                            <small style="color:#4A3F5C;">Require special characters</small>
+                                        </div>
+                                        <label class="royal-toggle-modern">
+                                            <input type="checkbox" name="password_special_chars" {% if security_settings.password_special_chars %}checked{% endif %}>
+                                            <span class="royal-toggle-slider-modern"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="royal-form-actions-modern">
+                                <button type="submit" class="btn-royal-primary-modern">
+                                    <i class="bi bi-save"></i> Save Security Settings
+                                </button>
+                                <button type="reset" class="btn-royal-outline-modern">
+                                    <i class="bi bi-arrow-counterclockwise"></i> Reset
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Royal Footer Decoration -->
+<div class="royal-footer-decoration text-center mt-4">
+   
+    <p style="color: var(--text-soft); font-size: 13px; margin-top: 10px; letter-spacing: 2px;">
+        ✦ {{ store_settings.store_name|default:"Vera's Choice" }} — Settings ✦
+    </p>
+</div>
+
+<style>
+/* ========================================
+   MODERN ROYAL STYLES
+   ======================================== */
+
+/* Royal Header */
+.royal-header {
+    position: relative;
+}
+
+.royal-divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 15px;
+}
+
+.royal-line {
+    flex: 1;
+    max-width: 80px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #D4B8E0, #B896D4, #D4B8E0, transparent);
+}
+
+.royal-crown {
+    font-size: 28px;
+    animation: royal-float 3s ease-in-out infinite;
+}
+
+.royal-diamond {
+    font-size: 18px;
+    color: #D4B8E0;
+    animation: royal-sparkle 2s ease-in-out infinite;
+}
+
+.royal-rose {
+    font-size: 22px;
+    animation: royal-float 2.5s ease-in-out infinite;
+    animation-delay: 0.5s;
+}
+
+@keyframes royal-float {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-5px) rotate(5deg); }
+}
+
+@keyframes royal-sparkle {
+    0%, 100% { opacity: 0.4; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.3); }
+}
+
+/* ========================================
+   TOP TABS NAVIGATION
+   ======================================== */
+.royal-tabs-container {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    border: 1px solid rgba(232, 213, 245, 0.2);
+    padding: 8px;
+    box-shadow: 0 4px 30px rgba(184, 150, 212, 0.06);
+    overflow-x: auto;
+}
+
+.royal-tabs {
+    display: flex;
+    gap: 4px;
+    flex-wrap: nowrap;
+}
+
+.royal-tab {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 14px;
+    background: transparent;
+    color: #7A6B8A;
+    font-weight: 500;
+    font-size: 14px;
+    font-family: 'Quicksand', sans-serif;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.royal-tab:hover {
+    background: #F5ECFA;
+    color: #4A3F5C;
+}
+
+.royal-tab.active {
+    background: linear-gradient(135deg, #F5ECFA, #E8D5F5);
+    color: #4A3F5C;
+    box-shadow: 0 2px 15px rgba(184, 150, 212, 0.1);
+}
+
+.royal-tab i {
+    font-size: 18px;
+    color: #B896D4;
+}
+
+/* ========================================
+   ROYAL CARDS
+   ======================================== */
+.royal-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 24px;
+    border: 1px solid rgba(232, 213, 245, 0.2);
+    box-shadow: 0 4px 30px rgba(184, 150, 212, 0.06);
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.royal-card:hover {
+    box-shadow: 0 8px 40px rgba(184, 150, 212, 0.12);
+}
+
+.royal-card-header {
+    padding: 20px 28px;
+    background: linear-gradient(135deg, rgba(245, 236, 250, 0.5), rgba(232, 213, 245, 0.2));
+    border-bottom: 2px solid rgba(232, 213, 245, 0.2);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: 'Playfair Display', serif;
+}
+
+.royal-header-icon {
+    font-size: 20px;
+}
+
+.royal-header-title {
+    flex: 1;
+    font-size: 18px;
+    font-weight: 600;
+    color: #4A3F5C;
+}
+
+.royal-header-decoration {
+    font-size: 16px;
+    color: #D4B8E0;
+}
+
+.royal-card-body {
+    padding: 28px 30px;
+}
+
+/* ========================================
+   MODERN FORM CONTROLS
+   ======================================== */
+
+/* Input Groups */
+.royal-input-group-modern {
+    display: flex;
+    align-items: center;
+    background: #FFFAF8;
+    border-radius: 14px;
+    border: 2px solid #E8D5F5;
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.royal-input-group-modern:focus-within {
+    border-color: #B896D4;
+    box-shadow: 0 0 0 4px rgba(184, 150, 212, 0.12);
+}
+
+.royal-input-group-text {
+    padding: 12px 16px;
+    background: #F5ECFA;
+    color: #7A6B8A;
+    font-weight: 600;
+    border-right: 2px solid #E8D5F5;
+    font-size: 15px;
+}
+
+.royal-input-group-modern .royal-form-input-modern {
+    border: none;
+    border-radius: 0 14px 14px 0;
+    flex: 1;
+}
+
+.royal-input-group-modern .royal-form-input-modern:focus {
+    box-shadow: none;
+}
+
+/* Modern Form Input */
+.royal-form-input-modern {
+    width: 100%;
+    padding: 12px 18px;
+    border-radius: 14px;
+    border: 2px solid #E8D5F5;
+    background: #FFFAF8;
+    font-family: 'Quicksand', sans-serif;
+    font-weight: 500;
+    color: #4A3F5C;
+    transition: all 0.3s ease;
+    font-size: 15px;
+}
+
+.royal-form-input-modern:focus {
+    border-color: #B896D4;
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(184, 150, 212, 0.12);
+    background: #FFFFFF;
+}
+
+.royal-form-input-modern::placeholder {
+    color: #B896D4;
+    opacity: 0.5;
+}
+
+/* Modern Textarea */
+.royal-form-textarea-modern {
+    width: 100%;
+    padding: 12px 18px;
+    border-radius: 14px;
+    border: 2px solid #E8D5F5;
+    background: #FFFAF8;
+    font-family: 'Quicksand', sans-serif;
+    font-weight: 500;
+    color: #4A3F5C;
+    transition: all 0.3s ease;
+    font-size: 15px;
+    resize: vertical;
+    min-height: 100px;
+}
+
+.royal-form-textarea-modern:focus {
+    border-color: #B896D4;
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(184, 150, 212, 0.12);
+    background: #FFFFFF;
+}
+
+/* Modern Select */
+.royal-form-select-modern {
+    width: 100%;
+    padding: 12px 18px;
+    border-radius: 14px;
+    border: 2px solid #E8D5F5;
+    background: #FFFAF8;
+    font-family: 'Quicksand', sans-serif;
+    font-weight: 500;
+    color: #4A3F5C;
+    transition: all 0.3s ease;
+    font-size: 15px;
+    appearance: auto;
+    cursor: pointer;
+}
+
+.royal-form-select-modern:focus {
+    border-color: #B896D4;
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(184, 150, 212, 0.12);
+    background: #FFFFFF;
+}
+
+/* Modern File Input */
+.royal-form-file-modern {
+    width: 100%;
+    padding: 12px 18px;
+    border-radius: 14px;
+    border: 2px dashed #E8D5F5;
+    background: #FFFAF8;
+    font-family: 'Quicksand', sans-serif;
+    font-weight: 500;
+    color: #4A3F5C;
+    transition: all 0.3s ease;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+.royal-form-file-modern:hover {
+    background: #F5ECFA;
+    border-color: #B896D4;
+}
+
+/* ========================================
+   MODERN TOGGLES
+   ======================================== */
+.royal-toggle-modern {
+    position: relative;
+    display: inline-block;
+    width: 52px;
+    height: 28px;
+    flex-shrink: 0;
+}
+
+.royal-toggle-modern input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.royal-toggle-slider-modern {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #E8D5F5;
+    border-radius: 28px;
+    transition: 0.3s ease;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.royal-toggle-slider-modern::before {
+    content: '';
+    position: absolute;
+    height: 22px;
+    width: 22px;
+    left: 3px;
+    bottom: 3px;
+    background: white;
+    border-radius: 50%;
+    transition: 0.3s ease;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+.royal-toggle-modern input:checked + .royal-toggle-slider-modern {
+    background: linear-gradient(135deg, #D4B8E0, #B896D4);
+}
+
+.royal-toggle-modern input:checked + .royal-toggle-slider-modern::before {
+    transform: translateX(24px);
+}
+
+.royal-toggle-modern input:disabled + .royal-toggle-slider-modern {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Toggle Items */
+.royal-toggle-group-modern {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.royal-toggle-item-modern {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 20px;
+    background: #FFFAF8;
+    border-radius: 16px;
+    border: 1px solid #E8D5F5;
+    transition: all 0.3s ease;
+}
+
+.royal-toggle-item-modern:hover {
+    border-color: #D4B8E0;
+    background: #FFF5F0;
+}
+
+/* ========================================
+   MODERN PAYMENT METHODS
+   ======================================== */
+.royal-payment-methods-modern {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.royal-payment-item-modern {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    background: #FFFAF8;
+    border-radius: 16px;
+    border: 1px solid #E8D5F5;
+    transition: all 0.3s ease;
+}
+
+.royal-payment-item-modern:hover {
+    border-color: #D4B8E0;
+    background: #FFF5F0;
+}
+
+/* ========================================
+   MODERN BADGES
+   ======================================== */
+.role-badge-modern {
+    display: inline-block;
+    padding: 4px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.role-badge-modern.admin {
+    background: #E8ECF5;
+    color: #2E4A7D;
+}
+
+.role-badge-modern.manager {
+    background: #E8F5EC;
+    color: #2E7D5E;
+}
+
+.status-badge-modern {
+    display: inline-block;
+    padding: 4px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.status-badge-modern.active {
+    background: #E8F5EC;
+    color: #2E7D5E;
+}
+
+/* ========================================
+   MODERN TABLE
+   ======================================== */
+.royal-table-modern {
+    width: 100%;
+    border-collapse: collapse;
+    color: #4A3F5C;
+}
+
+.royal-table-modern thead th {
+    padding: 14px 20px;
+    background: #F5ECFA;
+    font-weight: 600;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #7A6B8A;
+    border-bottom: 2px solid #E8D5F5;
+    text-align: left;
+}
+
+.royal-table-modern tbody td {
+    padding: 14px 20px;
+    border-bottom: 1px solid rgba(232, 213, 245, 0.15);
+    vertical-align: middle;
+}
+
+.royal-table-modern tbody tr:hover {
+    background: #F8F0FA;
+}
+
+/* ========================================
+   MODERN BUTTONS
+   ======================================== */
+.btn-royal-primary-modern {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 28px;
+    background: linear-gradient(135deg, #D4B8E0, #B896D4);
+    border: none;
+    border-radius: 14px;
+    color: white;
+    font-weight: 600;
+    font-family: 'Quicksand', sans-serif;
+    font-size: 15px;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    cursor: pointer;
+    text-decoration: none;
+    box-shadow: 0 4px 15px rgba(184, 150, 212, 0.25);
+}
+
+.btn-royal-primary-modern:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 30px rgba(184, 150, 212, 0.35);
+    color: white;
+    text-decoration: none;
+}
+
+.btn-royal-primary-modern:active {
+    transform: translateY(0);
+}
+
+.btn-royal-outline-modern {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 28px;
+    border: 2px solid #D4B8E0;
+    border-radius: 14px;
+    color: #4A3F5C;
+    font-weight: 600;
+    font-family: 'Quicksand', sans-serif;
+    font-size: 15px;
+    background: transparent;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.btn-royal-outline-modern:hover {
+    background: #F5ECFA;
+    border-color: #B896D4;
+    transform: translateY(-3px);
+    box-shadow: 0 4px 20px rgba(184, 150, 212, 0.15);
+    color: #4A3F5C;
+    text-decoration: none;
+}
+
+.btn-royal-danger-modern {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #E8A0A0, #D47A7A);
+    border: none;
+    border-radius: 12px;
+    color: white;
+    font-weight: 600;
+    font-family: 'Quicksand', sans-serif;
+    font-size: 14px;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    cursor: pointer;
+    text-decoration: none;
+    box-shadow: 0 4px 15px rgba(212, 122, 122, 0.25);
+}
+
+.btn-royal-danger-modern:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 30px rgba(212, 122, 122, 0.35);
+    color: white;
+}
+
+/* Form Actions */
+.royal-form-actions-modern {
+    display: flex;
+    gap: 15px;
+    margin-top: 25px;
+    padding-top: 25px;
+    border-top: 2px solid rgba(232, 213, 245, 0.2);
+}
+
+/* ========================================
+   MODERN BACKUP CARDS
+   ======================================== */
+.royal-backup-card-modern {
+    padding: 24px;
+    background: #FFFAF8;
+    border-radius: 18px;
+    border: 1px solid #E8D5F5;
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.royal-backup-card-modern:hover {
+    border-color: #D4B8E0;
+    box-shadow: 0 4px 20px rgba(184, 150, 212, 0.08);
+    transform: translateY(-3px);
+}
+
+/* ========================================
+   MODERN LOGO UPLOAD
+   ======================================== */
+.royal-logo-upload-modern {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.royal-logo-preview-modern {
+    width: 140px;
+    height: 140px;
+    border: 2px dashed #E8D5F5;
+    border-radius: 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #FFFAF8;
+    color: #7A6B8A;
+    font-size: 14px;
+    overflow: hidden;
+}
+
+.royal-logo-preview-modern i {
+    font-size: 44px;
+    color: #D4B8E0;
+    margin-bottom: 5px;
+}
+
+/* ========================================
+   SETTINGS TABS
+   ======================================== */
+.settings-tab {
+    animation: fadeSlide 0.3s ease-out;
+}
+
+@keyframes fadeSlide {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ========================================
+   ROYAL FOOTER
+   ======================================== */
+.royal-footer-decoration {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(232, 213, 245, 0.2);
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+@media (max-width: 991px) {
+    .royal-tabs {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .royal-tab {
+        padding: 8px 14px;
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 768px) {
+    .royal-card-body {
+        padding: 20px;
+    }
+    
+    .royal-form-actions-modern {
+        flex-direction: column;
+    }
+    
+    .royal-form-actions-modern .btn-royal-primary-modern,
+    .royal-form-actions-modern .btn-royal-outline-modern {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .royal-tabs-container {
+        padding: 5px;
+    }
+    
+    .royal-tab {
+        font-size: 12px;
+        padding: 6px 12px;
+    }
+    
+    .royal-tab span {
+        display: none;
+    }
+    
+    .royal-logo-preview-modern {
+        width: 100px;
+        height: 100px;
+    }
+}
+
+@media (max-width: 576px) {
+    .royal-tab i {
+        font-size: 16px;
+    }
+    
+    .royal-tab {
+        padding: 6px 10px;
+    }
+}
+</style>
+
+<script>
+// Tab switching
+function showSettingsTab(tabId) {
+    // Hide all tabs
+    document.querySelectorAll('.settings-tab').forEach(tab => {
+        tab.style.display = 'none';
+    });
+    
+    // Show selected tab
+    document.getElementById(tabId).style.display = 'block';
+    
+    // Update tab buttons
+    document.querySelectorAll('.royal-tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    // Find and activate the clicked tab
+    document.querySelectorAll('.royal-tab').forEach(tab => {
+        if (tab.dataset.tab === tabId) {
+            tab.classList.add('active');
+        }
+    });
+}
+
+// Logo preview
+document.addEventListener('DOMContentLoaded', function() {
+    const logoInput = document.getElementById('logoInput');
+    if (logoInput) {
+        logoInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('logoPreview');
+                    preview.innerHTML = `<img src="${e.target.result}" alt="Logo Preview" style="width:100%;height:100%;object-fit:cover;border-radius:16px;">`;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

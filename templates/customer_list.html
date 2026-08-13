@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}🌸 Customers - POS System{% endblock %}
+{% block page_title %}🌸 Customers{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-people me-2" style="color: #B896D4;"></i> Customer List</span>
+        <a href="{% url 'core:customer_create' %}" class="btn btn-primary btn-sm" style="border-radius: 20px;">
+            <i class="bi bi-person-plus"></i> Add Customer
+        </a>
+    </div>
+    <div class="card-body">
+        <div class="row g-3 mb-4">
+            <div class="col-md-6">
+                <form method="get" class="d-flex gap-2">
+                    <input type="text" name="search" class="form-control" placeholder="🔍 Search customers..." value="{{ search_query }}">
+                    <button type="submit" class="btn btn-primary" style="border-radius: 12px;">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </form>
+            </div>
+            <div class="col-md-6 text-end">
+                <span style="color: var(--text-soft);">{{ customers.count }} customers found</span>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            {% for customer in customers %}
+                <div class="col-md-4 col-lg-3">
+                    <div class="card h-100" style="border-radius: 16px;">
+                        <div class="card-body text-center">
+                            <div class="user-avatar mx-auto mb-3" style="width: 60px; height: 60px; background: linear-gradient(135deg, #E8D5F5, #D4B8E0); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 700; color: white;">
+                                {{ customer.name|first|upper }}
+                            </div>
+                            <h6 style="font-weight: 600;">{{ customer.name }}</h6>
+                            {% if customer.email %}
+                                <p style="color: var(--text-soft); font-size: 14px; margin-bottom: 5px;">
+                                    <i class="bi bi-envelope"></i> {{ customer.email }}
+                                </p>
+                            {% endif %}
+                            {% if customer.phone %}
+                                <p style="color: var(--text-soft); font-size: 14px; margin-bottom: 5px;">
+                                    <i class="bi bi-phone"></i> {{ customer.phone }}
+                                </p>
+                            {% endif %}
+                            <div class="d-flex justify-content-center gap-2 mt-2">
+                                <a href="{% url 'core:customer_edit' customer.id %}" class="btn btn-sm btn-outline-primary" style="border-radius: 8px;">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a href="{% url 'core:customer_delete' customer.id %}" class="btn btn-sm btn-outline-danger" style="border-radius: 8px;">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col-12 text-center py-4">
+                    <i class="bi bi-people" style="font-size: 48px; color: #D4B8E0;"></i>
+                    <p style="color: var(--text-soft); margin-top: 10px;">No customers found 💫</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

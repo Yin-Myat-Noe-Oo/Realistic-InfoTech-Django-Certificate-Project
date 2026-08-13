@@ -1,0 +1,620 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %} Products - {{ store_settings.store_name|default:"Vera's Choice" }}{% endblock %}
+{% block page_title %}Product Collection{% endblock %}
+
+{% block content %}
+<!-- Royal Header -->
+<div class="royal-header text-center mb-4">
+   
+    <h2 style="font-family: 'Playfair Display', serif; color: #4A3F5C; font-weight: 700; letter-spacing: 2px;">
+    Product Collection
+    </h2>
+    <p style="color: #7A6B8A; font-weight: 300; letter-spacing: 1px; font-size: 16px;">
+        <i class="bi bi-gem"></i> Managing your boutique inventory  <i class="bi bi-gem"></i>
+    </p>
+</div>
+
+<div class="royal-card">
+    <div class="royal-card-header">
+        <span class="royal-header-icon">📦</span>
+        <span class="royal-header-title">Product List</span>
+        <span class="royal-header-decoration">✦</span>
+        <a href="{% url 'core:product_create' %}" class="btn-royal-primary-modern" style="padding:8px 22px;font-size:13px;margin-left:auto;">
+            <i class="bi bi-plus-circle"></i> Add Product
+        </a>
+    </div>
+    <div class="royal-card-body">
+        <!-- Filters -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <form method="get" class="d-flex gap-2">
+                    <div class="royal-input-group" style="flex:1;">
+                        <span class="royal-input-group-icon">
+                            <i class="bi bi-search"></i>
+                        </span>
+                        <input type="text" name="search" class="royal-form-input-modern" placeholder="Search products..." value="{{ search_query }}" style="border-radius:0 14px 14px 0;">
+                    </div>
+                    <button type="submit" class="btn-royal-primary-modern" style="padding:8px 18px;">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </form>
+            </div>
+            <div class="col-md-4">
+                <select name="category" class="royal-form-select-modern" onchange="this.form.submit()" form="filterForm">
+                    <option value="">All Categories</option>
+                    {% for category in categories %}
+                        <option value="{{ category.id }}" {% if selected_category == category.id %}selected{% endif %}>
+                            {{ category.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4 text-end">
+                <span style="color:#7A6B8A;font-weight:500;display:flex;align-items:center;justify-content:flex-end;gap:6px;">
+                    <i class="bi bi-gem" style="color:#B896D4;"></i>
+                    {{ products.count }} products found
+                </span>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="table-responsive">
+            <table class="royal-table">
+                <thead>
+                    <tr>
+                        <th>👑 Product</th>
+                        <th>🔖 SKU</th>
+                        <th>🏷️ Category</th>
+                        <th>💰 Price</th>
+                        <th>📦 Stock</th>
+                        <th>✨ Status</th>
+                        <th>⚡ Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in products %}
+                        <tr>
+                            <td>
+                                <div class="royal-product-cell">
+                                    {% if product.image %}
+                                        <img src="{{ product.image.url }}" alt="{{ product.name }}" class="royal-product-thumb">
+                                    {% else %}
+                                        <div class="royal-product-thumb-placeholder">
+                                            <i class="bi bi-box"></i>
+                                        </div>
+                                    {% endif %}
+                                    <div>
+                                        <div style="font-weight:600;color:#4A3F5C;">{{ product.name }}</div>
+                                        <small style="color:#7A6B8A;font-size:12px;">{{ product.sku }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="royal-sku">{{ product.sku }}</span></td>
+                            <td>
+                                <span class="royal-category-badge">
+                                    {{ product.category.name|default:"Uncategorized" }}
+                                </span>
+                            </td>
+                            <td style="font-weight:700;color:#B896D4;font-family:'Playfair Display',serif;font-size:16px;">
+                                ${{ product.selling_price|floatformat:2 }}
+                            </td>
+                            <td>
+                                {% if product.quantity <= 0 %}
+                                    <span class="royal-stock-badge out">0</span>
+                                {% elif product.quantity <= product.reorder_level %}
+                                    <span class="royal-stock-badge low">{{ product.quantity }}</span>
+                                {% else %}
+                                    <span class="royal-stock-badge in">{{ product.quantity }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if product.is_active %}
+                                    <span class="royal-status-badge active">Active</span>
+                                {% else %}
+                                    <span class="royal-status-badge inactive">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="d-flex gap-1">
+                                    <a href="{% url 'core:product_edit' product.id %}" class="btn-royal-outline-modern" style="padding:6px 12px;font-size:12px;" title="Edit">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a href="{% url 'core:product_delete' product.id %}" class="btn-royal-danger-modern" style="padding:6px 12px;font-size:12px;" title="Delete">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="7">
+                                <div class="royal-empty-state">
+                                    <div class="royal-empty-icon">📦</div>
+                                    <p class="royal-empty-text">No products in your royal collection</p>
+                                    <p class="royal-empty-subtext">Start adding products to your boutique 💫</p>
+                                    <a href="{% url 'core:product_create' %}" class="btn-royal-primary-modern" style="margin-top:10px;padding:10px 25px;">
+                                        <i class="bi bi-plus-circle"></i> Add First Product
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Royal Footer Decoration -->
+<div class="royal-footer-decoration text-center mt-4">
+   
+    <p style="color: var(--text-soft); font-size: 13px; margin-top: 10px; letter-spacing: 2px;">
+        ✦ {{ store_settings.store_name|default:"Vera's Choice" }} — Product Collection ✦
+    </p>
+</div>
+
+<style>
+/* Royal Header */
+.royal-header {
+    position: relative;
+}
+
+.royal-divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 15px;
+}
+
+.royal-line {
+    flex: 1;
+    max-width: 80px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #D4B8E0, #B896D4, #D4B8E0, transparent);
+}
+
+.royal-crown {
+    font-size: 28px;
+    animation: royal-float 3s ease-in-out infinite;
+}
+
+.royal-diamond {
+    font-size: 18px;
+    color: #D4B8E0;
+    animation: royal-sparkle 2s ease-in-out infinite;
+}
+
+.royal-rose {
+    font-size: 22px;
+    animation: royal-float 2.5s ease-in-out infinite;
+    animation-delay: 0.5s;
+}
+
+@keyframes royal-float {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-5px) rotate(5deg); }
+}
+
+@keyframes royal-sparkle {
+    0%, 100% { opacity: 0.4; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.3); }
+}
+
+/* Royal Cards */
+.royal-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 24px;
+    border: 1px solid rgba(232, 213, 245, 0.2);
+    box-shadow: 0 4px 30px rgba(184, 150, 212, 0.06);
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.royal-card:hover {
+    box-shadow: 0 8px 40px rgba(184, 150, 212, 0.12);
+}
+
+.royal-card-header {
+    padding: 20px 28px;
+    background: linear-gradient(135deg, rgba(245, 236, 250, 0.5), rgba(232, 213, 245, 0.2));
+    border-bottom: 2px solid rgba(232, 213, 245, 0.2);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: 'Playfair Display', serif;
+}
+
+.royal-header-icon {
+    font-size: 20px;
+}
+
+.royal-header-title {
+    flex: 1;
+    font-size: 18px;
+    font-weight: 600;
+    color: #4A3F5C;
+}
+
+.royal-header-decoration {
+    font-size: 16px;
+    color: #D4B8E0;
+}
+
+.royal-card-body {
+    padding: 25px 28px;
+}
+
+/* Royal Input Group */
+.royal-input-group {
+    display: flex;
+    align-items: center;
+    background: #FFFAF8;
+    border-radius: 14px;
+    border: 2px solid #E8D5F5;
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.royal-input-group:focus-within {
+    border-color: #B896D4;
+    box-shadow: 0 0 0 4px rgba(184, 150, 212, 0.12);
+}
+
+.royal-input-group-icon {
+    padding: 10px 14px;
+    background: #F5ECFA;
+    color: #7A6B8A;
+    border-right: 2px solid #E8D5F5;
+}
+
+.royal-input-group-icon i {
+    font-size: 16px;
+}
+
+.royal-input-group .royal-form-input-modern {
+    border: none;
+    border-radius: 0 14px 14px 0;
+    flex: 1;
+}
+
+.royal-input-group .royal-form-input-modern:focus {
+    box-shadow: none;
+}
+
+/* Royal Form Controls */
+.royal-form-input-modern {
+    width: 100%;
+    padding: 10px 16px;
+    border-radius: 14px;
+    border: 2px solid #E8D5F5;
+    background: #FFFAF8;
+    font-family: 'Quicksand', sans-serif;
+    font-weight: 500;
+    color: #4A3F5C;
+    transition: all 0.3s ease;
+    font-size: 14px;
+}
+
+.royal-form-input-modern:focus {
+    border-color: #B896D4;
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(184, 150, 212, 0.12);
+    background: #FFFFFF;
+}
+
+.royal-form-select-modern {
+    width: 100%;
+    padding: 10px 16px;
+    border-radius: 14px;
+    border: 2px solid #E8D5F5;
+    background: #FFFAF8;
+    font-family: 'Quicksand', sans-serif;
+    font-weight: 500;
+    color: #4A3F5C;
+    transition: all 0.3s ease;
+    font-size: 14px;
+    appearance: auto;
+    cursor: pointer;
+}
+
+.royal-form-select-modern:focus {
+    border-color: #B896D4;
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(184, 150, 212, 0.12);
+    background: #FFFFFF;
+}
+
+/* Royal Table */
+.royal-table {
+    width: 100%;
+    border-collapse: collapse;
+    color: #4A3F5C;
+}
+
+.royal-table thead th {
+    padding: 14px 18px;
+    background: #F5ECFA;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #7A6B8A;
+    border-bottom: 2px solid #E8D5F5;
+    text-align: left;
+}
+
+.royal-table tbody td {
+    padding: 14px 18px;
+    border-bottom: 1px solid rgba(232, 213, 245, 0.15);
+    vertical-align: middle;
+}
+
+.royal-table tbody tr {
+    transition: all 0.3s ease;
+}
+
+.royal-table tbody tr:hover {
+    background: #F8F0FA;
+}
+
+.royal-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Product Cell */
+.royal-product-cell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.royal-product-thumb {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    object-fit: cover;
+    border: 2px solid #E8D5F5;
+}
+
+.royal-product-thumb-placeholder {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: #F5ECFA;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #D4B8E0;
+    font-size: 20px;
+    border: 2px solid #E8D5F5;
+}
+
+/* SKU */
+.royal-sku {
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    color: #7A6B8A;
+    background: #F5F0F8;
+    padding: 3px 10px;
+    border-radius: 8px;
+}
+
+/* Category Badge */
+.royal-category-badge {
+    padding: 4px 14px;
+    background: #F5ECFA;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #7A6B8A;
+}
+
+/* Stock Badges */
+.royal-stock-badge {
+    display: inline-block;
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 14px;
+    min-width: 40px;
+    text-align: center;
+}
+
+.royal-stock-badge.in {
+    background: #E8F5EC;
+    color: #2E7D5E;
+}
+
+.royal-stock-badge.low {
+    background: #F5F0E8;
+    color: #7D6B2E;
+}
+
+.royal-stock-badge.out {
+    background: #F5E8E8;
+    color: #7D2E2E;
+}
+
+/* Status Badges */
+.royal-status-badge {
+    display: inline-block;
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 13px;
+}
+
+.royal-status-badge.active {
+    background: #E8F5EC;
+    color: #2E7D5E;
+}
+
+.royal-status-badge.inactive {
+    background: #F5E8E8;
+    color: #7D2E2E;
+}
+
+/* Royal Buttons */
+.btn-royal-primary-modern {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 24px;
+    background: linear-gradient(135deg, #D4B8E0, #B896D4);
+    border: none;
+    border-radius: 14px;
+    color: white;
+    font-weight: 600;
+    font-family: 'Quicksand', sans-serif;
+    font-size: 14px;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    cursor: pointer;
+    text-decoration: none;
+    box-shadow: 0 4px 15px rgba(184, 150, 212, 0.25);
+}
+
+.btn-royal-primary-modern:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 30px rgba(184, 150, 212, 0.35);
+    color: white;
+    text-decoration: none;
+}
+
+.btn-royal-outline-modern {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border: 2px solid #D4B8E0;
+    border-radius: 12px;
+    color: #4A3F5C;
+    font-weight: 600;
+    font-family: 'Quicksand', sans-serif;
+    font-size: 13px;
+    background: transparent;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.btn-royal-outline-modern:hover {
+    background: #F5ECFA;
+    border-color: #B896D4;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(184, 150, 212, 0.15);
+    color: #4A3F5C;
+}
+
+.btn-royal-danger-modern {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 14px;
+    background: linear-gradient(135deg, #E8A0A0, #D47A7A);
+    border: none;
+    border-radius: 12px;
+    color: white;
+    font-weight: 600;
+    font-family: 'Quicksand', sans-serif;
+    font-size: 13px;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    cursor: pointer;
+    text-decoration: none;
+    box-shadow: 0 4px 15px rgba(212, 122, 122, 0.25);
+}
+
+.btn-royal-danger-modern:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(212, 122, 122, 0.35);
+    color: white;
+}
+
+/* Royal Empty State */
+.royal-empty-state {
+    text-align: center;
+    padding: 50px 20px;
+}
+
+.royal-empty-icon {
+    font-size: 64px;
+    color: #D4B8E0;
+    margin-bottom: 15px;
+}
+
+.royal-empty-text {
+    font-size: 20px;
+    font-weight: 600;
+    color: #4A3F5C;
+    font-family: 'Playfair Display', serif;
+    margin-bottom: 5px;
+}
+
+.royal-empty-subtext {
+    font-size: 14px;
+    color: #7A6B8A;
+    margin-bottom: 15px;
+}
+
+/* Royal Footer */
+.royal-footer-decoration {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(232, 213, 245, 0.2);
+}
+
+/* Responsive */
+@media (max-width: 991px) {
+    .royal-table thead {
+        display: none;
+    }
+    
+    .royal-table tbody td {
+        display: block;
+        padding: 10px 16px;
+        border-bottom: none;
+    }
+    
+    .royal-table tbody td:before {
+        content: attr(data-label);
+        display: inline-block;
+        font-weight: 600;
+        width: 120px;
+        color: #7A6B8A;
+    }
+    
+    .royal-table tbody tr {
+        border-bottom: 2px solid #E8D5F5;
+        padding: 10px 0;
+        display: block;
+    }
+    
+    .royal-table tbody td:last-child {
+        border-bottom: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .royal-card-body {
+        padding: 18px 20px;
+    }
+    
+    .royal-card-header {
+        padding: 15px 18px;
+        flex-wrap: wrap;
+    }
+    
+    .royal-header-title {
+        font-size: 16px;
+    }
+}
+</style>
+
+<form id="filterForm" method="get"></form>
+{% endblock %}

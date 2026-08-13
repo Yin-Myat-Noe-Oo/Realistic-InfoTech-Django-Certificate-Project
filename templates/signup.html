@@ -1,0 +1,400 @@
+{% extends 'base_auth.html' %}
+{% load static %}
+
+{% block title %}👑 Sign Up - {{ store_settings.store_name|default:"Vera's Choice" }}{% endblock %}
+
+{% block content %}
+<div class="royal-auth-container">
+    <div class="royal-auth-card">
+        <div class="royal-auth-header">
+            <div class="royal-auth-crown">👑</div>
+            <h2 class="royal-auth-title">Create Account</h2>
+            <p class="royal-auth-subtitle">Join {{ store_settings.store_name|default:"Vera's Choice" }} Royal Boutique</p>
+            <div class="royal-divider">
+                <span class="royal-line"></span>
+                <span class="royal-diamond">💎</span>
+                <span class="royal-line"></span>
+            </div>
+        </div>
+
+        <div class="royal-auth-body">
+            <form method="post" class="royal-auth-form">
+                {% csrf_token %}
+                
+                <div class="royal-form-group">
+                    <label class="royal-form-label">
+                        <i class="bi bi-person"></i> Username
+                    </label>
+                    <input type="text" name="username" class="royal-form-input" placeholder="Choose a username" required>
+                    {% if form.username.errors %}
+                        <div class="royal-error-field">
+                            <i class="bi bi-exclamation-circle"></i> {{ form.username.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="royal-form-group">
+                    <label class="royal-form-label">
+                        <i class="bi bi-envelope"></i> Email (Optional)
+                    </label>
+                    <input type="email" name="email" class="royal-form-input" placeholder="Enter your email address">
+                    {% if form.email.errors %}
+                        <div class="royal-error-field">
+                            <i class="bi bi-exclamation-circle"></i> {{ form.email.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="royal-form-group">
+                    <label class="royal-form-label">
+                        <i class="bi bi-key"></i> Password
+                    </label>
+                    <div class="royal-password-wrapper">
+                        <input type="password" name="password1" class="royal-form-input" placeholder="Create a password" required>
+                        <button type="button" class="royal-password-toggle" onclick="togglePassword(this)">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
+                    <small class="royal-help-text">Password must be at least 8 characters</small>
+                    {% if form.password1.errors %}
+                        <div class="royal-error-field">
+                            <i class="bi bi-exclamation-circle"></i> {{ form.password1.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="royal-form-group">
+                    <label class="royal-form-label">
+                        <i class="bi bi-key"></i> Confirm Password
+                    </label>
+                    <div class="royal-password-wrapper">
+                        <input type="password" name="password2" class="royal-form-input" placeholder="Confirm your password" required>
+                        <button type="button" class="royal-password-toggle" onclick="togglePassword(this)">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
+                    {% if form.password2.errors %}
+                        <div class="royal-error-field">
+                            <i class="bi bi-exclamation-circle"></i> {{ form.password2.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                {% if form.non_field_errors %}
+                    <div class="royal-error-block">
+                        <i class="bi bi-exclamation-circle"></i> {{ form.non_field_errors.0 }}
+                    </div>
+                {% endif %}
+
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="royal-error-block">
+                            <i class="bi bi-exclamation-circle"></i> {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <button type="submit" class="royal-auth-btn">
+                    <i class="bi bi-person-plus"></i> Create Account
+                </button>
+            </form>
+
+            <div class="royal-auth-footer">
+                <p>Already have an account? <a href="{% url 'core:login' %}" class="royal-signup-link">Login here</a></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="royal-auth-decorations">
+        <span class="royal-float-icon" style="top: 10%; left: 5%; font-size: 30px; animation-delay: 0s;">💎</span>
+        <span class="royal-float-icon" style="top: 20%; right: 8%; font-size: 24px; animation-delay: 1s;">🌹</span>
+        <span class="royal-float-icon" style="bottom: 30%; left: 3%; font-size: 28px; animation-delay: 2s;">👑</span>
+        <span class="royal-float-icon" style="bottom: 20%; right: 5%; font-size: 22px; animation-delay: 0.5s;">✨</span>
+        <span class="royal-float-icon" style="top: 50%; left: 2%; font-size: 20px; animation-delay: 1.5s;">💫</span>
+        <span class="royal-float-icon" style="top: 40%; right: 3%; font-size: 26px; animation-delay: 2.5s;">🌟</span>
+    </div>
+</div>
+
+<style>
+/* Same styles as login page plus these additions */
+
+.royal-help-text {
+    display: block;
+    font-size: 13px;
+    color: #7A6B8A;
+    margin-top: 4px;
+    font-weight: 400;
+}
+
+.royal-error-field {
+    color: #D47A7A;
+    font-size: 13px;
+    font-weight: 500;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.royal-auth-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #FFF8F0 0%, #F5ECFA 30%, #E8D5F5 70%, #D4B8E0 100%);
+    position: relative;
+    padding: 20px;
+}
+
+.royal-auth-card {
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(20px);
+    border-radius: 32px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 20px 80px rgba(184, 150, 212, 0.2);
+    padding: 40px 45px;
+    width: 100%;
+    max-width: 440px;
+    position: relative;
+    z-index: 2;
+    animation: royal-slide-up 0.6s ease-out;
+}
+
+@keyframes royal-slide-up {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.royal-auth-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.royal-auth-crown {
+    font-size: 48px;
+    animation: royal-float 3s ease-in-out infinite;
+}
+
+@keyframes royal-float {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-5px) rotate(5deg); }
+}
+
+.royal-auth-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 32px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #4A3F5C, #B896D4);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin: 8px 0 4px;
+}
+
+.royal-auth-subtitle {
+    color: #7A6B8A;
+    font-weight: 400;
+    font-size: 14px;
+    letter-spacing: 2px;
+}
+
+.royal-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 15px 0;
+}
+
+.royal-line {
+    flex: 1;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #D4B8E0, transparent);
+}
+
+.royal-diamond {
+    font-size: 16px;
+    color: #D4B8E0;
+    animation: royal-sparkle 2s ease-in-out infinite;
+}
+
+@keyframes royal-sparkle {
+    0%, 100% { opacity: 0.4; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.3); }
+}
+
+.royal-auth-body {
+    padding: 5px 0;
+}
+
+.royal-form-group {
+    margin-bottom: 20px;
+}
+
+.royal-form-label {
+    display: block;
+    font-weight: 600;
+    color: #4A3F5C;
+    font-size: 14px;
+    margin-bottom: 6px;
+    letter-spacing: 0.3px;
+}
+
+.royal-form-label i {
+    color: #B896D4;
+    margin-right: 6px;
+}
+
+.royal-form-input {
+    width: 100%;
+    padding: 12px 18px;
+    border-radius: 14px;
+    border: 2px solid #E8D5F5;
+    background: #FFFAF8;
+    font-family: 'Quicksand', sans-serif;
+    font-weight: 500;
+    color: #4A3F5C;
+    transition: all 0.3s ease;
+    font-size: 15px;
+}
+
+.royal-form-input:focus {
+    border-color: #B896D4;
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(184, 150, 212, 0.12);
+    background: #FFFFFF;
+}
+
+.royal-password-wrapper {
+    position: relative;
+}
+
+.royal-password-wrapper .royal-form-input {
+    padding-right: 50px;
+}
+
+.royal-password-toggle {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    color: #7A6B8A;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 5px;
+    transition: all 0.3s ease;
+}
+
+.royal-password-toggle:hover {
+    color: #B896D4;
+}
+
+.royal-error-block {
+    padding: 10px 14px;
+    background: #F5E8E8;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    color: #D47A7A;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.royal-error-block i {
+    margin-right: 6px;
+}
+
+.royal-auth-btn {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #D4B8E0, #B896D4);
+    color: white;
+    font-weight: 700;
+    font-size: 16px;
+    font-family: 'Quicksand', sans-serif;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(184, 150, 212, 0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.royal-auth-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 35px rgba(184, 150, 212, 0.35);
+}
+
+.royal-auth-footer {
+    text-align: center;
+    margin-top: 25px;
+    color: #7A6B8A;
+    font-size: 14px;
+}
+
+.royal-signup-link {
+    color: #B896D4;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.royal-signup-link:hover {
+    color: #7A6B8A;
+    text-decoration: underline;
+}
+
+.royal-auth-decorations {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.royal-float-icon {
+    position: absolute;
+    opacity: 0.3;
+    animation: royal-float 4s ease-in-out infinite;
+}
+
+@media (max-width: 576px) {
+    .royal-auth-card {
+        padding: 30px 20px;
+        border-radius: 24px;
+    }
+    
+    .royal-auth-title {
+        font-size: 26px;
+    }
+    
+    .royal-auth-decorations {
+        display: none;
+    }
+}
+</style>
+
+<script>
+function togglePassword(button) {
+    const input = button.parentElement.querySelector('.royal-form-input');
+    const icon = button.querySelector('i');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.className = 'bi bi-eye-slash';
+    } else {
+        input.type = 'password';
+        icon.className = 'bi bi-eye';
+    }
+}
+</script>
+{% endblock %}

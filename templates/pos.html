@@ -1,0 +1,855 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}👑 Royal POS - {{ store_settings.store_name|default:"Vera's Choice" }}{% endblock %}
+{% block page_title %}👑 Point of Sale{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Products -->
+    <div class="col-lg-8">
+        <!-- Search & Categories -->
+        <div class="royal-card mb-3">
+            <div class="royal-card-body">
+                <div class="row g-3">
+                    <div class="col-md-5">
+                        <div class="royal-input-group">
+                            <span class="royal-input-group-icon">
+                                <i class="bi bi-search"></i>
+                            </span>
+                            <input type="text" id="searchProduct" class="royal-form-input-modern" placeholder="Search collection..." style="border-radius:0 14px 14px 0;">
+                        </div>
+                    </div>
+                    <div class="col-md-7">
+                        <div class="d-flex flex-wrap gap-2" id="categoryFilters">
+                            <button class="btn-royal-primary-modern category-btn" data-category="all" style="border-radius:20px;padding:8px 22px;font-size:14px;">
+                                👑 All
+                            </button>
+                            {% for category in categories %}
+                                <button class="btn-royal-outline-modern category-btn" data-category="{{ category.id }}" style="border-radius:20px;padding:8px 20px;font-size:14px;">
+                                    {{ category.name }}
+                                </button>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Products Grid -->
+        <div class="row g-4" id="productGrid">
+            {% for product in products %}
+                <div class="col-md-4 col-xl-3 product-item" data-category="{{ product.category.id }}" data-name="{{ product.name|lower }}">
+                    <div class="royal-product-card" onclick="addToCart({{ product.id }})">
+                        <div class="royal-product-image">
+                            {% if product.image %}
+                                <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                            {% else %}
+                                <i class="bi bi-box-seam"></i>
+                            {% endif %}
+                            {% if product.quantity <= 0 %}
+                                <span class="royal-product-badge">Out of Stock</span>
+                            {% elif product.quantity <= product.reorder_level %}
+                                <span class="royal-product-badge warning">Low Stock</span>
+                            {% endif %}
+                        </div>
+                        <div class="royal-product-info">
+                            <h6 class="royal-product-name">{{ product.name }}</h6>
+                            <p class="royal-product-stock">
+                                <i class="bi bi-box"></i> Stock: {{ product.quantity }}
+                            </p>
+                            <div class="royal-product-footer">
+                                <span class="royal-product-price">${{ product.selling_price|floatformat:2 }}</span>
+                                <button class="royal-add-btn">
+                                    <i class="bi bi-plus-lg"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col-12 text-center py-5">
+                    <i class="bi bi-box-seam" style="font-size:64px;color:#D4B8E0;"></i>
+                    <h5 style="color:#7A6B8A;margin-top:15px;font-family:'Playfair Display',serif;">No products in your royal collection 💫</h5>
+                    <p style="color:#7A6B8A;">Start adding products to your boutique</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Cart -->
+    <div class="col-lg-4">
+        <div class="royal-cart-card">
+            <div class="royal-cart-header">
+                <span>
+                    <i class="bi bi-cart3" style="color:#B896D4;"></i> 
+                    {{ store_settings.store_name|default:"Vera's Choice" }} - Cart
+                </span>
+                <button class="royal-clear-btn" onclick="clearCart()">
+                    <i class="bi bi-trash"></i> Clear
+                </button>
+            </div>
+            <div class="royal-cart-body" id="cartItems">
+                {% if cart %}
+                    {% for item in cart %}
+                        <div class="royal-cart-item" data-product-id="{{ item.product_id }}">
+                            <div class="royal-cart-item-info">
+                                <div class="royal-cart-item-name">
+                                    <span class="royal-crown-icon">👑</span>
+                                    {{ item.name }}
+                                </div>
+                                <div class="royal-cart-item-price">${{ item.price|floatformat:2 }} each</div>
+                                <div class="royal-cart-quantity">
+                                    <button class="royal-qty-btn" onclick="updateQuantity('{{ item.product_id }}', -1)">
+                                        <i class="bi bi-dash"></i>
+                                    </button>
+                                    <span class="quantity-display">{{ item.quantity }}</span>
+                                    <button class="royal-qty-btn" onclick="updateQuantity('{{ item.product_id }}', 1)">
+                                        <i class="bi bi-plus"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="royal-cart-item-total">
+                                <div class="royal-cart-total-amount">${{ item.total|floatformat:2 }}</div>
+                                <button class="royal-remove-btn" onclick="removeFromCart('{{ item.product_id }}')">
+                                    <i class="bi bi-x-circle"></i>
+                                </button>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="royal-empty-cart">
+                        <i class="bi bi-cart3"></i>
+                        <p>Your cart is empty 💫</p>
+                        <small>Add some products to get started!</small>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="royal-cart-footer">
+                <div class="royal-cart-summary">
+                    <div class="royal-summary-row">
+                        <span>Subtotal</span>
+                        <span id="subtotal">$0.00</span>
+                    </div>
+                    <div class="royal-summary-row">
+                        <span>Tax ({{ tax_rate|floatformat:0 }}%)</span>
+                        <span id="tax">$0.00</span>
+                    </div>
+                    <div class="royal-summary-total">
+                        <span>Total</span>
+                        <span id="grandTotal">$0.00</span>
+                    </div>
+                </div>
+                
+                <form method="post" action="{% url 'core:process_payment' %}">
+                    {% csrf_token %}
+                    <div class="royal-form-group">
+                        <label class="royal-form-label">
+                            <i class="bi bi-person"></i> Customer
+                        </label>
+                        <select name="customer_id" class="royal-form-select-modern">
+                            <option value="">👸 Walk-in Customer</option>
+                            {% for customer in customers %}
+                                <option value="{{ customer.id }}">{{ customer.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="royal-form-group">
+                        <label class="royal-form-label">
+                            <i class="bi bi-credit-card"></i> Payment Method
+                        </label>
+                        <select name="payment_method" class="royal-form-select-modern" required>
+                            {% if payment_methods %}
+                                {% for value, label in payment_methods %}
+                                    <option value="{{ value }}">{{ label }}</option>
+                                {% endfor %}
+                            {% else %}
+                                <option value="" disabled>No payment methods enabled</option>
+                            {% endif %}
+                        </select>
+                        {% if not payment_methods %}
+                            <small class="royal-help-text" style="color:#D47A7A;">
+                                <i class="bi bi-exclamation-triangle"></i> Please enable payment methods in settings
+                            </small>
+                        {% endif %}
+                    </div>
+                    <div class="royal-form-group">
+                        <label class="royal-form-label">
+                            <i class="bi bi-geo-alt"></i> Delivery Address
+                        </label>
+                        <textarea name="delivery_address" class="royal-form-textarea-modern" rows="2" placeholder="Enter delivery address..."></textarea>
+                    </div>
+                    <div class="royal-form-group">
+                        <label class="royal-form-label">
+                            <i class="bi bi-chat"></i> Notes
+                        </label>
+                        <textarea name="notes" class="royal-form-textarea-modern" rows="2" placeholder="Add  notes..."></textarea>
+                    </div>
+                    <input type="hidden" name="discount" value="0">
+                    <button type="submit" class="royal-pay-btn" id="payButton" {% if not payment_methods %}disabled{% endif %}>
+                        <i class="bi bi-credit-card"></i> Pay Now
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Royal Product Card */
+.royal-product-card {
+    background: rgba(255,255,255,0.92);
+    border-radius: 20px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.175,0.885,0.32,1.275);
+    border: 1px solid rgba(232,213,245,0.15);
+    height: 100%;
+}
+
+.royal-product-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 40px rgba(184,150,212,0.15);
+    border-color: #D4B8E0;
+}
+
+.royal-product-image {
+    height: 160px;
+    background: linear-gradient(135deg, #FFF5F0, #F5ECFA);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    padding: 15px;
+}
+
+.royal-product-image img {
+    max-height: 120px;
+    object-fit: contain;
+    border-radius: 10px;
+}
+
+.royal-product-image i {
+    font-size: 60px;
+    color: #D4B8E0;
+}
+
+.royal-product-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #D47A7A;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.royal-product-badge.warning {
+    background: #F5C842;
+    color: #4A3F5C;
+}
+
+.royal-product-info {
+    padding: 16px 18px 18px;
+}
+
+.royal-product-name {
+    font-weight: 600;
+    color: #4A3F5C;
+    margin-bottom: 4px;
+    font-size: 15px;
+}
+
+.royal-product-stock {
+    font-size: 13px;
+    color: #7A6B8A;
+    margin-bottom: 10px;
+}
+
+.royal-product-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.royal-product-price {
+    font-weight: 700;
+    color: #B896D4;
+    font-size: 19px;
+    font-family: 'Playfair Display', serif;
+}
+
+.royal-add-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background: linear-gradient(135deg, #D4B8E0, #B896D4);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.royal-add-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 15px rgba(184,150,212,0.3);
+}
+
+/* Royal Input Group */
+.royal-input-group {
+    display: flex;
+    align-items: center;
+    background: #FFFAF8;
+    border-radius: 14px;
+    border: 2px solid #E8D5F5;
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.royal-input-group:focus-within {
+    border-color: #B896D4;
+    box-shadow: 0 0 0 4px rgba(184,150,212,0.12);
+}
+
+.royal-input-group-icon {
+    padding: 12px 16px;
+    background: #F5ECFA;
+    color: #7A6B8A;
+    border-right: 2px solid #E8D5F5;
+}
+
+.royal-input-group-icon i {
+    font-size: 18px;
+}
+
+.royal-input-group .royal-form-input-modern {
+    border: none;
+    border-radius: 0 14px 14px 0;
+    flex: 1;
+}
+
+.royal-input-group .royal-form-input-modern:focus {
+    box-shadow: none;
+}
+
+/* Royal Cart Card */
+.royal-cart-card {
+    background: rgba(255,255,255,0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 24px;
+    border: 1px solid rgba(232,213,245,0.2);
+    box-shadow: 0 4px 30px rgba(184,150,212,0.08);
+    position: sticky;
+    top: 100px;
+    overflow: hidden;
+}
+
+.royal-cart-header {
+    padding: 18px 22px;
+    background: linear-gradient(135deg, rgba(245,236,250,0.5), rgba(232,213,245,0.2));
+    border-bottom: 2px solid rgba(232,213,245,0.2);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 600;
+    font-size: 17px;
+    color: #4A3F5C;
+}
+
+.royal-clear-btn {
+    background: transparent;
+    border: none;
+    color: #D47A7A;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 4px 12px;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+.royal-clear-btn:hover {
+    background: #F5E8E8;
+}
+
+.royal-cart-body {
+    padding: 15px 20px;
+    max-height: 380px;
+    overflow-y: auto;
+}
+
+.royal-cart-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 14px 0;
+    border-bottom: 1px solid rgba(232,213,245,0.15);
+}
+
+.royal-cart-item:last-child {
+    border-bottom: none;
+}
+
+.royal-cart-item-info {
+    flex: 1;
+}
+
+.royal-cart-item-name {
+    font-weight: 600;
+    color: #4A3F5C;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.royal-cart-item-price {
+    font-size: 13px;
+    color: #7A6B8A;
+    margin-top: 2px;
+}
+
+.royal-cart-quantity {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 6px;
+}
+
+.royal-qty-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1px solid #E8D5F5;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    color: #4A3F5C;
+}
+
+.royal-qty-btn:hover {
+    background: #F5ECFA;
+    border-color: #B896D4;
+}
+
+.royal-cart-item-total {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: space-between;
+}
+
+.royal-cart-total-amount {
+    font-weight: 700;
+    color: #B896D4;
+    font-size: 16px;
+}
+
+.royal-remove-btn {
+    background: transparent;
+    border: none;
+    color: #D47A7A;
+    font-size: 18px;
+    padding: 0;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.royal-remove-btn:hover {
+    transform: scale(1.2);
+}
+
+.royal-empty-cart {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.royal-empty-cart i {
+    font-size: 48px;
+    color: #D4B8E0;
+}
+
+.royal-empty-cart p {
+    margin-top: 12px;
+    color: #4A3F5C;
+    font-weight: 500;
+}
+
+.royal-empty-cart small {
+    color: #7A6B8A;
+}
+
+.royal-cart-footer {
+    padding: 18px 22px;
+    background: #F5ECFA;
+    border-top: 2px solid rgba(232,213,245,0.2);
+}
+
+.royal-cart-summary {
+    margin-bottom: 15px;
+}
+
+.royal-summary-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    color: #7A6B8A;
+    font-size: 14px;
+}
+
+.royal-summary-total {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0 4px;
+    border-top: 2px solid rgba(232,213,245,0.3);
+    font-size: 20px;
+    font-weight: 700;
+    color: #4A3F5C;
+}
+
+.royal-summary-total span:last-child {
+    color: #B896D4;
+    font-family: 'Playfair Display', serif;
+}
+
+/* Royal Form Controls */
+.royal-form-group {
+    margin-bottom: 12px;
+}
+
+.royal-form-label {
+    display: block;
+    font-weight: 600;
+    color: #4A3F5C;
+    font-size: 13px;
+    margin-bottom: 4px;
+    letter-spacing: 0.3px;
+}
+
+.royal-form-label i {
+    color: #B896D4;
+    margin-right: 4px;
+}
+
+.royal-form-select-modern {
+    width: 100%;
+    padding: 10px 16px;
+    border-radius: 14px;
+    border: 2px solid #E8D5F5;
+    background: #FFFAF8;
+    font-family: 'Quicksand', sans-serif;
+    font-weight: 500;
+    color: #4A3F5C;
+    transition: all 0.3s ease;
+    font-size: 14px;
+    appearance: auto;
+    cursor: pointer;
+}
+
+.royal-form-select-modern:focus {
+    border-color: #B896D4;
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(184,150,212,0.12);
+    background: #FFFFFF;
+}
+
+.royal-form-textarea-modern {
+    width: 100%;
+    padding: 10px 16px;
+    border-radius: 14px;
+    border: 2px solid #E8D5F5;
+    background: #FFFAF8;
+    font-family: 'Quicksand', sans-serif;
+    font-weight: 500;
+    color: #4A3F5C;
+    transition: all 0.3s ease;
+    font-size: 14px;
+    resize: vertical;
+}
+
+.royal-form-textarea-modern:focus {
+    border-color: #B896D4;
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(184,150,212,0.12);
+    background: #FFFFFF;
+}
+
+.royal-form-input-modern {
+    width: 100%;
+    padding: 10px 16px;
+    border-radius: 14px;
+    border: 2px solid #E8D5F5;
+    background: #FFFAF8;
+    font-family: 'Quicksand', sans-serif;
+    font-weight: 500;
+    color: #4A3F5C;
+    transition: all 0.3s ease;
+    font-size: 14px;
+}
+
+.royal-form-input-modern:focus {
+    border-color: #B896D4;
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(184,150,212,0.12);
+    background: #FFFFFF;
+}
+
+/* Royal Card */
+.royal-card {
+    background: rgba(255,255,255,0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 24px;
+    border: 1px solid rgba(232,213,245,0.2);
+    box-shadow: 0 4px 30px rgba(184,150,212,0.06);
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.royal-card:hover {
+    box-shadow: 0 8px 40px rgba(184,150,212,0.12);
+}
+
+.royal-card-body {
+    padding: 20px 24px;
+}
+
+/* Royal Buttons */
+.btn-royal-primary-modern {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 20px;
+    background: linear-gradient(135deg, #D4B8E0, #B896D4);
+    border: none;
+    border-radius: 14px;
+    color: white;
+    font-weight: 600;
+    font-family: 'Quicksand', sans-serif;
+    font-size: 14px;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    cursor: pointer;
+    text-decoration: none;
+    box-shadow: 0 4px 15px rgba(184,150,212,0.25);
+}
+
+.btn-royal-primary-modern:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 30px rgba(184,150,212,0.35);
+    color: white;
+    text-decoration: none;
+}
+
+.btn-royal-outline-modern {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 20px;
+    border: 2px solid #D4B8E0;
+    border-radius: 14px;
+    color: #4A3F5C;
+    font-weight: 600;
+    font-family: 'Quicksand', sans-serif;
+    font-size: 14px;
+    background: transparent;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.btn-royal-outline-modern:hover {
+    background: #F5ECFA;
+    border-color: #B896D4;
+    transform: translateY(-3px);
+    box-shadow: 0 4px 20px rgba(184,150,212,0.15);
+    color: #4A3F5C;
+}
+
+.royal-pay-btn {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #D4B8E0, #B896D4);
+    color: white;
+    font-weight: 700;
+    font-size: 16px;
+    transition: all 0.4s cubic-bezier(0.175,0.885,0.32,1.275);
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(184,150,212,0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.royal-pay-btn:hover:not(:disabled) {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 30px rgba(184,150,212,0.35);
+}
+
+.royal-pay-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.royal-help-text {
+    display: block;
+    font-size: 12px;
+    color: #7A6B8A;
+    margin-top: 4px;
+    font-weight: 400;
+}
+
+/* Responsive */
+@media (max-width: 991px) {
+    .royal-cart-card {
+        position: relative;
+        top: 0;
+        margin-top: 20px;
+    }
+}
+
+@media (max-width: 768px) {
+    .royal-cart-header {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .royal-cart-body {
+        max-height: 250px;
+    }
+}
+</style>
+
+<script>
+// Get CSRF token
+function getCSRFToken() {
+    return document.querySelector('[name=csrfmiddlewaretoken]').value;
+}
+
+// Category filtering
+document.querySelectorAll('.category-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const category = this.dataset.category;
+        document.querySelectorAll('.category-btn').forEach(b => {
+            b.classList.remove('btn-royal-primary-modern');
+            b.classList.add('btn-royal-outline-modern');
+        });
+        this.classList.remove('btn-royal-outline-modern');
+        this.classList.add('btn-royal-primary-modern');
+        
+        document.querySelectorAll('.product-item').forEach(item => {
+            if (category === 'all' || item.dataset.category === category) {
+                item.style.display = '';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    });
+});
+
+// Product search
+document.getElementById('searchProduct').addEventListener('input', function() {
+    const search = this.value.toLowerCase();
+    document.querySelectorAll('.product-item').forEach(item => {
+        const name = item.dataset.name;
+        if (name.includes(search)) {
+            item.style.display = '';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+});
+
+// Add to cart
+function addToCart(productId) {
+    fetch('{% url "core:add_to_cart" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': getCSRFToken()
+        },
+        body: `product_id=${productId}&quantity=1`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert(data.error || 'Error adding to cart');
+        }
+    });
+}
+
+// Remove from cart
+function removeFromCart(productId) {
+    if (confirm('Remove this item from your royal cart?')) {
+        fetch('{% url "core:remove_from_cart" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: `product_id=${productId}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) location.reload();
+        });
+    }
+}
+
+// Update quantity
+function updateQuantity(productId, change) {
+    const item = document.querySelector(`.royal-cart-item[data-product-id="${productId}"]`);
+    if (!item) return;
+    const display = item.querySelector('.quantity-display');
+    let currentQty = parseInt(display.textContent);
+    let newQty = currentQty + change;
+    
+    if (newQty <= 0) {
+        removeFromCart(productId);
+        return;
+    }
+    
+    fetch('{% url "core:update_cart_item" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': getCSRFToken()
+        },
+        body: `product_id=${productId}&quantity=${newQty}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) location.reload();
+    });
+}
+
+// Clear cart
+function clearCart() {
+    if (confirm('Clear all items from your royal cart?')) {
+        fetch('{% url "core:clear_cart" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': getCSRFToken()
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) location.reload();
+        });
+    }
+}
+</script>
+{% endblock %}

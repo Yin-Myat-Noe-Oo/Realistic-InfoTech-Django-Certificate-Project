@@ -1,0 +1,782 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}👑 Orders - {{ store_settings.store_name|default:"Vera's Choice" }}{% endblock %}
+{% block page_title %}👑 Order Management{% endblock %}
+
+{% block content %}
+<!-- Royal Header -->
+<div class="royal-header text-center mb-4">
+   
+    <h2 style="font-family: 'Playfair Display', serif; color: #4A3F5C; font-weight: 700; letter-spacing: 2px;">
+    Order Management
+    </h2>
+    <p style="color: #7A6B8A; font-weight: 300; letter-spacing: 1px; font-size: 16px;">
+        <i class="bi bi-gem"></i> Track and manage all  transactions <i class="bi bi-gem"></i>
+    </p>
+</div>
+
+
+
+<!-- Order Stats - Royal Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3 col-sm-6">
+        <div class="royal-stat-card lavender">
+            <div class="royal-stat-icon">📦</div>
+            <div class="royal-stat-number">{{ total_orders }}</div>
+            <div class="royal-stat-label">Total Orders</div>
+            <div class="royal-stat-decoration">✦</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="royal-stat-card gold">
+            <div class="royal-stat-icon">🔄</div>
+            <div class="royal-stat-number">{{ pending_orders }}</div>
+            <div class="royal-stat-label">Pending</div>
+            <div class="royal-stat-decoration">✦</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="royal-stat-card cream">
+            <div class="royal-stat-icon">🚚</div>
+            <div class="royal-stat-number">{{ shipping_orders }}</div>
+            <div class="royal-stat-label">In Transit</div>
+            <div class="royal-stat-decoration">✦</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="royal-stat-card mint">
+            <div class="royal-stat-icon">✅</div>
+            <div class="royal-stat-number">{{ delivered_orders }}</div>
+            <div class="royal-stat-label">Delivered</div>
+            <div class="royal-stat-decoration">✦</div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions Row -->
+<div class="row g-3 mb-4">
+    <div class="col-12">
+        <div class="royal-card" style="background: rgba(255,255,255,0.6); border-radius: 20px; padding: 0;">
+            <div class="royal-card-body" style="padding: 15px 20px;">
+                <div class="d-flex flex-wrap gap-3 align-items-center">
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <span style="font-size:20px;">📋</span>
+                        <span style="font-weight:600;color:#4A3F5C;font-size:14px;">Quick Actions:</span>
+                    </div>
+                    <a href="{% url 'core:pos' %}" class="btn-royal-primary" style="padding:8px 22px;font-size:13px;border-radius:12px;">
+                        <i class="bi bi-cart-plus"></i> New Order
+                    </a>
+                    <button class="btn-royal-outline" onclick="window.print()" style="padding:8px 22px;font-size:13px;border-radius:12px;">
+                        <i class="bi bi-printer"></i> Print List
+                    </button>
+                    <a href="#" onclick="exportOrders()" class="btn-royal-outline" style="padding:8px 22px;font-size:13px;border-radius:12px;">
+                        <i class="bi bi-download"></i> Export CSV
+                    </a>
+                    <span style="color:#7A6B8A;font-size:13px;margin-left:auto;display:flex;align-items:center;gap:6px;">
+                        <i class="bi bi-gem" style="color:#B896D4;"></i> 
+                        <span style="font-weight:500;">{{ sales.count }}</span> orders found
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Royal Divider -->
+
+<style>
+/* Royal Header */
+.royal-header {
+    position: relative;
+}
+
+.royal-divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 15px;
+}
+
+.royal-line {
+    flex: 1;
+    max-width: 80px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #D4B8E0, #B896D4, #D4B8E0, transparent);
+}
+
+.royal-crown {
+    font-size: 28px;
+    animation: royal-float 3s ease-in-out infinite;
+}
+
+.royal-diamond {
+    font-size: 18px;
+    color: #D4B8E0;
+    animation: royal-sparkle 2s ease-in-out infinite;
+}
+
+.royal-rose {
+    font-size: 22px;
+    animation: royal-float 2.5s ease-in-out infinite;
+    animation-delay: 0.5s;
+}
+
+@keyframes royal-float {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-5px) rotate(5deg); }
+}
+
+@keyframes royal-sparkle {
+    0%, 100% { opacity: 0.4; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.3); }
+}
+
+/* Royal Divider Light */
+.royal-divider-light {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+}
+
+.royal-line-light {
+    flex: 1;
+    max-width: 60px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #E8D5F5, transparent);
+}
+
+.royal-diamond-small {
+    font-size: 14px;
+    color: #D4B8E0;
+}
+
+/* Royal Stat Cards - Enhanced */
+.royal-stat-card {
+    position: relative;
+    border-radius: 20px;
+    padding: 25px 20px;
+    text-align: center;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.royal-stat-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
+    border-radius: 50%;
+    transform: rotate(45deg);
+}
+
+.royal-stat-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 12px 40px rgba(184, 150, 212, 0.2);
+}
+
+.royal-stat-card.lavender {
+    background: linear-gradient(135deg, #F5ECFA, #E8D5F5);
+    border-color: #D4B8E0;
+}
+
+.royal-stat-card.gold {
+    background: linear-gradient(135deg, #FFF8F0, #F5E6D3);
+    border-color: #E8C89E;
+}
+
+.royal-stat-card.cream {
+    background: linear-gradient(135deg, #FFF5F0, #FDECEA);
+    border-color: #E8C4C4;
+}
+
+.royal-stat-card.mint {
+    background: linear-gradient(135deg, #F0FFF5, #E4FFEC);
+    border-color: #A8D5BA;
+}
+
+.royal-stat-icon {
+    font-size: 36px;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.royal-stat-number {
+    font-size: 32px;
+    font-weight: 700;
+    font-family: 'Playfair Display', serif;
+    color: #4A3F5C;
+    margin-bottom: 4px;
+}
+
+.royal-stat-label {
+    font-size: 14px;
+    color: #7A6B8A;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+}
+
+.royal-stat-decoration {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 12px;
+    color: rgba(184, 150, 212, 0.3);
+    font-weight: 300;
+}
+
+/* Royal Card */
+.royal-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 24px;
+    border: 1px solid rgba(232, 213, 245, 0.2);
+    box-shadow: 0 4px 30px rgba(184, 150, 212, 0.06);
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.royal-card:hover {
+    box-shadow: 0 8px 40px rgba(184, 150, 212, 0.12);
+}
+
+.royal-card-body {
+    padding: 25px 28px;
+}
+
+/* Royal Buttons */
+.btn-royal-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 24px;
+    background: linear-gradient(135deg, #D4B8E0, #B896D4);
+    border: none;
+    border-radius: 14px;
+    color: white;
+    font-weight: 600;
+    font-family: 'Quicksand', sans-serif;
+    font-size: 14px;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    cursor: pointer;
+    text-decoration: none;
+    box-shadow: 0 4px 15px rgba(184, 150, 212, 0.25);
+}
+
+.btn-royal-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 30px rgba(184, 150, 212, 0.35);
+    color: white;
+    text-decoration: none;
+}
+
+.btn-royal-outline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 24px;
+    border: 2px solid #D4B8E0;
+    border-radius: 14px;
+    color: #4A3F5C;
+    font-weight: 600;
+    font-family: 'Quicksand', sans-serif;
+    font-size: 14px;
+    background: transparent;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.btn-royal-outline:hover {
+    background: #F5ECFA;
+    border-color: #B896D4;
+    transform: translateY(-3px);
+    box-shadow: 0 4px 20px rgba(184, 150, 212, 0.15);
+    color: #4A3F5C;
+    text-decoration: none;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .royal-stat-card .royal-stat-number {
+        font-size: 24px;
+    }
+    
+    .royal-stat-card .royal-stat-icon {
+        font-size: 28px;
+    }
+    
+    .royal-divider {
+        gap: 8px;
+    }
+    
+    .royal-line {
+        max-width: 40px;
+    }
+    
+    .royal-card-body {
+        padding: 15px 18px;
+    }
+}
+</style>
+
+<div class="royal-card">
+    <div class="royal-card-header">
+        <span class="royal-header-icon">📋</span>
+        <span class="royal-header-title">Order List</span>
+        <span class="royal-header-decoration">✦</span>
+        <span style="margin-left:auto;font-size:13px;color:#7A6B8A;">
+            <i class="bi bi-clock-history"></i> All Orders
+        </span>
+    </div>
+    <div class="royal-card-body" style="padding:0;">
+        <!-- Filters -->
+        <div class="row g-3 p-3" style="background:#F8F0FA;border-radius:0 0 20px 20px;">
+            <div class="col-md-4">
+                <form method="get" class="d-flex gap-2" id="searchForm">
+                    <input type="text" name="search" class="form-control" placeholder="🔍 Search by invoice or customer..." value="{{ search }}" style="border-radius:12px;border:2px solid #E8D5F5;padding:10px 16px;">
+                    <button type="submit" class="btn-royal-primary" style="padding:8px 20px;white-space:nowrap;">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </form>
+            </div>
+            <div class="col-md-3">
+                <select name="status" class="form-control" onchange="document.getElementById('filterForm').submit();" form="filterForm" style="border-radius:12px;border:2px solid #E8D5F5;padding:10px 16px;">
+                    <option value="">📊 All Status</option>
+                    {% for status_code, status_name in statuses %}
+                        <option value="{{ status_code }}" {% if selected_status == status_code %}selected{% endif %}>
+                            {{ status_name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <input type="date" name="date_from" class="form-control" placeholder="From Date" value="{{ date_from }}" style="border-radius:12px;border:2px solid #E8D5F5;padding:10px 16px;" onchange="document.getElementById('filterForm').submit();">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn-royal-primary w-100" style="padding:10px 20px;" form="filterForm">
+                    <i class="bi bi-filter"></i> Filter
+                </button>
+            </div>
+        </div>
+<br>
+        <!-- Table -->
+        <div class="table-responsive">
+            <table class="royal-table">
+                <thead>
+                    <tr>
+                        <th style="width:100px;">📄 Invoice</th>
+                        <th>👤 Customer</th>
+                        <th style="width:120px;">📅 Date</th>
+                        <th style="width:50px;">📦 Items</th>
+                        <th style="width:100px;">💰 Total</th>
+                        <th style="width:110px;">📊 Status</th>
+                        <th style="width:150px;">🚚 Delivery</th>
+                        <th style="width:120px;">⚡ Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sale in sales %}
+                        <tr>
+                            <td>
+                                <span style="font-weight:700;color:#4A3F5C;font-family:'Playfair Display',serif;font-size:14px;">
+                                    {{ sale.invoice_number }}
+                                </span>
+                            </td>
+                            <td>
+                                <div style="display:flex;align-items:center;gap:8px;">
+                                    <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#E8D5F5,#D4B8E0);display:flex;align-items:center;justify-content:center;color:white;font-weight:600;font-size:14px;">
+                                        {{ sale.customer.name|default:"W"|first|upper }}
+                                    </div>
+                                    <div>
+                                        <div style="font-weight:500;color:#4A3F5C;">{{ sale.customer.name|default:"Walk-in" }}</div>
+                                        {% if sale.customer.phone %}
+                                            <small style="color:#7A6B8A;font-size:11px;">
+                                                <i class="bi bi-phone"></i> {{ sale.customer.phone }}
+                                            </small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </td>
+                            <td style="color:#7A6B8A;font-size:12px;">
+                                <div>{{ sale.created_at|date:"M d, Y" }}</div>
+                                <small>{{ sale.created_at|date:"h:i A" }}</small>
+                            </td>
+                            <td style="text-align:center;">
+                                <span style="display:inline-block;background:#F5ECFA;padding:2px 10px;border-radius:12px;font-weight:600;font-size:13px;color:#4A3F5C;">
+                                    {{ sale.items.count }}
+                                </span>
+                            </td>
+                            <td style="font-weight:700;color:#B896D4;font-family:'Playfair Display',serif;font-size:17px;">
+                                ${{ sale.total_amount|floatformat:2 }}
+                            </td>
+                            <td>
+                                {% if sale.status == 'pending' %}
+                                    <span class="status-badge pending">🔄 Pending</span>
+                                {% elif sale.status == 'processing' %}
+                                    <span class="status-badge processing">📦 Processing</span>
+                                {% elif sale.status == 'shipped' %}
+                                    <span class="status-badge shipped">🚚 Shipped</span>
+                                {% elif sale.status == 'out_for_delivery' %}
+                                    <span class="status-badge out-for-delivery">🚛 Out for Delivery</span>
+                                {% elif sale.status == 'delivered' %}
+                                    <span class="status-badge delivered">✅ Delivered</span>
+                                {% else %}
+                                    <span class="status-badge cancelled">❌ Cancelled</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if sale.tracking_number %}
+                                    <div style="font-size:12px;color:#2E4A7D;display:flex;align-items:center;gap:4px;">
+                                        <i class="bi bi-box"></i> 
+                                        <span style="font-weight:500;">{{ sale.tracking_number }}</span>
+                                    </div>
+                                    {% if sale.courier_name %}
+                                        <small style="color:#7A6B8A;font-size:11px;display:flex;align-items:center;gap:4px;">
+                                            <i class="bi bi-truck"></i> {{ sale.courier_name }}
+                                        </small>
+                                    {% endif %}
+                                    <small style="color:#7A6B8A;font-size:10px;display:block;margin-top:2px;">
+                                        <i class="bi bi-clock"></i> Updated: {{ sale.updated_at|date:"M d, H:i" }}
+                                    </small>
+                                {% else %}
+                                    <small style="color:#7A6B8A;font-size:12px;display:flex;align-items:center;gap:4px;">
+                                        <i class="bi bi-clock"></i> Not shipped
+                                    </small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="d-flex gap-1">
+                                    <a href="{% url 'core:sale_detail' sale.id %}" class="btn-royal-outline" style="padding:6px 10px;font-size:12px;" title="View Details">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    {% if sale.status != 'delivered' and sale.status != 'cancelled' %}
+                                        <a href="{% url 'core:sale_detail' sale.id %}#update-status" class="btn-royal-primary" style="padding:6px 10px;font-size:12px;" title="Update Status">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                    {% endif %}
+                                    {% if sale.status == 'delivered' %}
+                                        <span class="btn-royal-success" style="padding:6px 10px;font-size:12px;border-radius:8px;background:#E8F5EC;color:#2E7D5E;cursor:default;display:inline-flex;align-items:center;gap:4px;">
+                                            <i class="bi bi-check-circle"></i> Done
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="8">
+                                <div class="royal-empty-state">
+                                    <div class="royal-empty-icon">📋</div>
+                                    <p class="royal-empty-text">No orders found</p>
+                                    <p class="royal-empty-subtext">Start making sales to see orders here 💫</p>
+                                    <a href="{% url 'core:pos' %}" class="btn-royal-primary" style="margin-top:10px;">
+                                        <i class="bi bi-cart-plus"></i> Create First Order
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if sales.has_other_pages %}
+            <div class="d-flex justify-content-center p-3" style="border-top:1px solid rgba(232,213,245,0.2);">
+                <nav aria-label="Order pagination">
+                    <ul class="pagination royal-pagination">
+                        {% if sales.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ sales.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}" aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                        {% endif %}
+
+                        {% for num in sales.paginator.page_range %}
+                            {% if sales.number == num %}
+                                <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                            {% elif num > sales.number|add:'-3' and num < sales.number|add:'3' %}
+                                <li class="page-item"><a class="page-link" href="?page={{ num }}{% if search %}&search={{ search }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}">{{ num }}</a></li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if sales.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ sales.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}" aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Royal Footer Decoration -->
+<div class="royal-footer-decoration text-center mt-4">
+   ]
+    <p style="color: var(--text-soft); font-size: 13px; margin-top: 10px; letter-spacing: 2px;">
+        ✦ {{ store_settings.store_name|default:"Vera's Choice" }} — Royal Order Management ✦
+    </p>
+</div>
+
+<form id="filterForm" method="get"></form>
+
+<style>
+/* Royal Header */
+.royal-header {
+    position: relative;
+}
+
+.royal-divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 15px;
+}
+
+.royal-line {
+    flex: 1;
+    max-width: 80px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #D4B8E0, #B896D4, #D4B8E0, transparent);
+}
+
+.royal-crown {
+    font-size: 28px;
+    animation: royal-float 3s ease-in-out infinite;
+}
+
+.royal-diamond {
+    font-size: 18px;
+    color: #D4B8E0;
+    animation: royal-sparkle 2s ease-in-out infinite;
+}
+
+.royal-rose {
+    font-size: 22px;
+    animation: royal-float 2.5s ease-in-out infinite;
+    animation-delay: 0.5s;
+}
+
+@keyframes royal-float {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-5px) rotate(5deg); }
+}
+
+@keyframes royal-sparkle {
+    0%, 100% { opacity: 0.4; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.3); }
+}
+
+/* Royal Empty State */
+.royal-empty-state {
+    text-align: center;
+    padding: 50px 20px;
+}
+
+.royal-empty-icon {
+    font-size: 64px;
+    color: #D4B8E0;
+    margin-bottom: 15px;
+}
+
+.royal-empty-text {
+    font-size: 20px;
+    font-weight: 600;
+    color: #4A3F5C;
+    font-family: 'Playfair Display', serif;
+    margin-bottom: 5px;
+}
+
+.royal-empty-subtext {
+    font-size: 14px;
+    color: #7A6B8A;
+    margin-bottom: 15px;
+}
+
+/* Status Badges */
+.status-badge {
+    display: inline-block;
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+.status-badge.pending {
+    background: #F5F0E8;
+    color: #7D6B2E;
+}
+.status-badge.processing {
+    background: #E8ECF5;
+    color: #2E4A7D;
+}
+.status-badge.shipped {
+    background: #E8F0F5;
+    color: #2E6B7D;
+}
+.status-badge.out-for-delivery {
+    background: #F5ECE8;
+    color: #7D5B2E;
+}
+.status-badge.delivered {
+    background: #E8F5EC;
+    color: #2E7D5E;
+}
+.status-badge.cancelled {
+    background: #F5E8E8;
+    color: #7D2E2E;
+}
+
+/* Royal Table */
+.royal-table {
+    width: 100%;
+    border-collapse: collapse;
+    color: #4A3F5C;
+}
+
+.royal-table thead th {
+    padding: 14px 18px;
+    background: #F5ECFA;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #7A6B8A;
+    border-bottom: 2px solid #E8D5F5;
+    text-align: left;
+}
+
+.royal-table tbody td {
+    padding: 14px 18px;
+    border-bottom: 1px solid rgba(232, 213, 245, 0.15);
+    vertical-align: middle;
+}
+
+.royal-table tbody tr {
+    transition: all 0.3s ease;
+}
+
+.royal-table tbody tr:hover {
+    background: #F8F0FA;
+}
+
+.royal-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Pagination */
+.royal-pagination .page-link {
+    border: none !important;
+    color: #4A3F5C !important;
+    border-radius: 10px !important;
+    margin: 0 3px !important;
+    padding: 8px 14px !important;
+    background: transparent !important;
+    transition: all 0.3s ease !important;
+}
+
+.royal-pagination .page-item.active .page-link {
+    background: linear-gradient(135deg, #D4B8E0, #B896D4) !important;
+    color: white !important;
+}
+
+.royal-pagination .page-link:hover {
+    background: #F5ECFA !important;
+}
+
+/* Royal Footer */
+.royal-footer-decoration {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(232, 213, 245, 0.2);
+}
+
+/* Responsive */
+@media (max-width: 991px) {
+    .royal-table thead {
+        display: none;
+    }
+    
+    .royal-table tbody td {
+        display: block;
+        padding: 10px 16px;
+        border-bottom: none;
+    }
+    
+    .royal-table tbody td:before {
+        content: attr(data-label);
+        display: inline-block;
+        font-weight: 600;
+        width: 120px;
+        color: #7A6B8A;
+    }
+    
+    .royal-table tbody tr {
+        border-bottom: 2px solid #E8D5F5;
+        padding: 10px 0;
+        display: block;
+    }
+    
+    .royal-table tbody td:last-child {
+        border-bottom: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .royal-stat-card .royal-stat-number {
+        font-size: 24px;
+    }
+    
+    .royal-stat-card .royal-stat-icon {
+        font-size: 28px;
+    }
+}
+</style>
+
+<!-- JavaScript with Export Function -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-submit when date changes
+    document.querySelectorAll('input[type="date"]').forEach(input => {
+        input.addEventListener('change', function() {
+            document.getElementById('filterForm').submit();
+        });
+    });
+});
+
+// Export Orders with Filters
+function exportOrders() {
+    // Get current filter values
+    const search = document.querySelector('input[name="search"]')?.value || '';
+    const status = document.querySelector('select[name="status"]')?.value || '';
+    const date_from = document.querySelector('input[name="date_from"]')?.value || '';
+    
+    // Build URL with query parameters
+    let url = "{% url 'core:export_orders' %}?";
+    if (search) url += `search=${encodeURIComponent(search)}&`;
+    if (status) url += `status=${encodeURIComponent(status)}&`;
+    if (date_from) url += `date_from=${encodeURIComponent(date_from)}&`;
+    
+    // Remove trailing & or ?
+    url = url.replace(/[?&]$/, '');
+    
+    // Redirect to export URL
+    window.location.href = url;
+}
+</script>
+{% endblock %}

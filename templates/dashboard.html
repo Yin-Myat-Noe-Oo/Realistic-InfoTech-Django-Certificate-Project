@@ -1,0 +1,553 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %} Dashboard - {{ store_settings.store_name|default:"Vera's Choice" }}{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<!-- Royal Decorative Header -->
+<div class="royal-welcome text-center mb-4">
+   
+    <h2 style="font-family: 'Playfair Display', serif; color: #4A3F5C; font-weight: 700; letter-spacing: 2px;">
+        Welcome to {{ store_settings.store_name|default:"Vera's Choice" }} 
+    </h2>
+    <p style="color: #7A6B8A; font-weight: 300; letter-spacing: 1px; font-size: 16px;">
+        <i class="bi bi-gem"></i> You can get everything <i class="bi bi-gem"></i>
+    </p>
+    
+</div>
+
+<!-- Royal Stats Cards -->
+<div class="row g-4">
+    <div class="col-md-3 col-sm-6">
+        <div class="royal-stat-card gold">
+            <div class="royal-stat-icon">📦</div>
+            <div class="royal-stat-number">{{ total_products }}</div>
+            <div class="royal-stat-label"> Collection</div>
+            <div class="royal-stat-decoration">✦</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="royal-stat-card lavender">
+            <div class="royal-stat-icon">⚜️</div>
+            <div class="royal-stat-number">{{ low_stock_count }}</div>
+            <div class="royal-stat-label">Low Stock Alerts</div>
+            <div class="royal-stat-decoration">✦</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="royal-stat-card cream">
+            <div class="royal-stat-icon">💰</div>
+            <div class="royal-stat-number">${{ total_sales_today|floatformat:2 }}</div>
+            <div class="royal-stat-label">Today's values</div>
+            <div class="royal-stat-decoration">✦</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="royal-stat-card rose">
+            <div class="royal-stat-icon">👸</div>
+            <div class="royal-stat-number">{{ total_customers }}</div>
+            <div class="royal-stat-label"> Customers</div>
+            <div class="royal-stat-decoration">✦</div>
+        </div>
+    </div>
+</div>
+
+<!-- Royal Cards Row -->
+<div class="row g-4 mt-3">
+    <!-- Low Stock Alert -->
+    <div class="col-md-6">
+        <div class="royal-card">
+            <div class="card-header">
+                <span class="header-icon"></span>
+                 Inventory Alert
+                <span style="float: right; font-size: 14px; color: var(--text-soft); font-family: 'Quicksand', sans-serif;">
+                    <i class="bi bi-gem"></i> Attention needed
+                </span>
+            </div>
+            <div class="card-body" style="max-height: 350px; overflow-y: auto; padding: 20px;">
+                {% if low_stock_products %}
+                    {% for product in low_stock_products %}
+                        <div class="royal-list-item">
+                            <div class="royal-list-content">
+                                <div class="royal-list-title">
+                                    <span class="royal-crown-icon">👑</span>
+                                    {{ product.name }}
+                                </div>
+                                <div class="royal-list-subtitle">
+                                    <i class="bi bi-tag"></i> SKU: {{ product.sku }}
+                                </div>
+                            </div>
+                            <div class="royal-list-badge danger">
+                                <i class="bi bi-exclamation-triangle-fill"></i>
+                                {{ product.quantity }} units left
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="royal-empty-state">
+                        <div class="royal-empty-icon">✨</div>
+                        <p class="royal-empty-text">All products have sufficient stock!</p>
+                        <p class="royal-empty-subtext">Your royal inventory is well-maintained 🌹</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Sales -->
+    <div class="col-md-6">
+        <div class="royal-card">
+            <div class="card-header">
+                <span class="header-icon">💎</span>
+                Recent  Deals
+                <span style="float: right; font-size: 14px; color: var(--text-soft); font-family: 'Quicksand', sans-serif;">
+                    <i class="bi bi-clock"></i> Latest transactions
+                </span>
+            </div>
+            <div class="card-body" style="max-height: 350px; overflow-y: auto; padding: 20px;">
+                {% if recent_sales %}
+                    {% for sale in recent_sales %}
+                        <div class="royal-list-item">
+                            <div class="royal-list-content">
+                                <div class="royal-list-title">
+                                    <span class="royal-crown-icon">💎</span>
+                                    {{ sale.invoice_number }}
+                                </div>
+                                <div class="royal-list-subtitle">
+                                    <i class="bi bi-clock"></i> {{ sale.created_at|date:"M d, H:i" }}
+                                </div>
+                            </div>
+                            <div class="royal-list-badge success">
+                                <i class="bi bi-coin"></i>
+                                ${{ sale.total_amount|floatformat:2 }}
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="royal-empty-state">
+                        <div class="royal-empty-icon">🌙</div>
+                        <p class="royal-empty-text">No recent royal deals</p>
+                        <p class="royal-empty-subtext">Start making sales to fill your treasury 💫</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Royal Quick Actions -->
+<div class="row g-4 mt-3">
+    <div class="col-12">
+        <div class="royal-card">
+            <div class="card-header">
+                <span class="header-icon">⚡</span>
+                Royal Quick Actions
+                <span style="float: right; font-size: 14px; color: var(--text-soft); font-family: 'Quicksand', sans-serif;">
+                    <i class="bi bi-lightning-fill"></i> Instant access
+                </span>
+            </div>
+            <div class="card-body">
+                <div class="royal-actions-grid">
+                    <a href="{% url 'core:pos' %}" class="royal-action-btn primary">
+                        <i class="bi bi-cart-plus"></i>
+                        <span>New Sale</span>
+                        <small>Create a royal transaction</small>
+                    </a>
+                    <a href="{% url 'core:product_create' %}" class="royal-action-btn lavender">
+                        <i class="bi bi-plus-circle"></i>
+                        <span>Add Product</span>
+                        <small>Expand your royal collection</small>
+                    </a>
+                    <a href="{% url 'core:customer_create' %}" class="royal-action-btn cream">
+                        <i class="bi bi-person-plus"></i>
+                        <span>Add Customer</span>
+                        <small>Welcome a noble customer</small>
+                    </a>
+                    <a href="{% url 'core:sales_report' %}" class="royal-action-btn rose">
+                        <i class="bi bi-graph-up"></i>
+                        <span>View Reports</span>
+                        <small>Review royal analytics</small>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Royal Footer Decoration -->
+<div class="royal-footer-decoration text-center mt-4">
+   
+    <p style="color: var(--text-soft); font-size: 13px; margin-top: 10px; letter-spacing: 2px;">
+        ✦ {{ store_settings.store_name|default:"Vera's Choice" }} — Where Every Transaction is a Royal Affair ✦
+    </p>
+</div>
+
+<style>
+/* Royal Theme Styles */
+.royal-welcome {
+    position: relative;
+}
+
+.royal-divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 15px;
+}
+
+.royal-line {
+    flex: 1;
+    max-width: 80px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #D4B8E0, #B896D4, #D4B8E0, transparent);
+}
+
+.royal-crown {
+    font-size: 28px;
+    animation: royal-float 3s ease-in-out infinite;
+}
+
+.royal-diamond {
+    font-size: 18px;
+    color: #D4B8E0;
+    animation: royal-sparkle 2s ease-in-out infinite;
+}
+
+.royal-rose {
+    font-size: 22px;
+    animation: royal-float 2.5s ease-in-out infinite;
+    animation-delay: 0.5s;
+}
+
+@keyframes royal-float {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-5px) rotate(5deg); }
+}
+
+@keyframes royal-sparkle {
+    0%, 100% { opacity: 0.4; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.3); }
+}
+
+/* Royal Stat Cards */
+.royal-stat-card {
+    position: relative;
+    border-radius: 20px;
+    padding: 25px 20px;
+    text-align: center;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.royal-stat-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
+    border-radius: 50%;
+    transform: rotate(45deg);
+}
+
+.royal-stat-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 12px 40px rgba(184, 150, 212, 0.2);
+}
+
+.royal-stat-card.gold {
+    background: linear-gradient(135deg, #FFF8F0, #F5E6D3);
+    border-color: #E8C89E;
+}
+
+.royal-stat-card.lavender {
+    background: linear-gradient(135deg, #F5ECFA, #E8D5F5);
+    border-color: #D4B8E0;
+}
+
+.royal-stat-card.cream {
+    background: linear-gradient(135deg, #FFF5F0, #FDECEA);
+    border-color: #E8C4C4;
+}
+
+.royal-stat-card.rose {
+    background: linear-gradient(135deg, #FFF0F5, #FFE4EC);
+    border-color: #E8B8C8;
+}
+
+.royal-stat-icon {
+    font-size: 36px;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.royal-stat-number {
+    font-size: 32px;
+    font-weight: 700;
+    font-family: 'Playfair Display', serif;
+    color: #4A3F5C;
+    margin-bottom: 4px;
+}
+
+.royal-stat-label {
+    font-size: 14px;
+    color: #7A6B8A;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+}
+
+.royal-stat-decoration {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 12px;
+    color: rgba(184, 150, 212, 0.3);
+    font-weight: 300;
+}
+
+/* Royal Cards */
+.royal-card {
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    border: 1px solid rgba(232, 213, 245, 0.2);
+    box-shadow: 0 4px 25px rgba(184, 150, 212, 0.06);
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.royal-card:hover {
+    box-shadow: 0 8px 40px rgba(184, 150, 212, 0.12);
+    transform: translateY(-3px);
+    border-color: rgba(232, 213, 245, 0.3);
+}
+
+/* Royal List Items */
+.royal-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 18px;
+    margin-bottom: 10px;
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 14px;
+    border: 1px solid rgba(232, 213, 245, 0.15);
+    transition: all 0.3s ease;
+}
+
+.royal-list-item:hover {
+    background: rgba(255, 255, 255, 0.85);
+    border-color: #D4B8E0;
+    transform: translateX(5px);
+    box-shadow: 0 2px 15px rgba(184, 150, 212, 0.08);
+}
+
+.royal-list-content {
+    flex: 1;
+}
+
+.royal-list-title {
+    font-weight: 600;
+    color: #4A3F5C;
+    margin-bottom: 3px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.royal-crown-icon {
+    font-size: 14px;
+}
+
+.royal-list-subtitle {
+    font-size: 13px;
+    color: #7A6B8A;
+}
+
+.royal-list-badge {
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+.royal-list-badge.danger {
+    background: #F5E8E8;
+    color: #7D2E2E;
+}
+
+.royal-list-badge.success {
+    background: #E8F5EC;
+    color: #2E7D5E;
+}
+
+/* Royal Empty State */
+.royal-empty-state {
+    text-align: center;
+    padding: 30px 20px;
+}
+
+.royal-empty-icon {
+    font-size: 48px;
+    margin-bottom: 10px;
+}
+
+.royal-empty-text {
+    font-size: 16px;
+    font-weight: 500;
+    color: #4A3F5C;
+    margin-bottom: 5px;
+}
+
+.royal-empty-subtext {
+    font-size: 14px;
+    color: #7A6B8A;
+}
+
+/* Royal Actions Grid */
+.royal-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px;
+}
+
+.royal-action-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 22px 15px;
+    border-radius: 18px;
+    text-decoration: none !important;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    text-align: center;
+    gap: 6px;
+}
+
+.royal-action-btn:hover {
+    transform: translateY(-5px) scale(1.02);
+    text-decoration: none !important;
+}
+
+.royal-action-btn i {
+    font-size: 28px;
+    margin-bottom: 5px;
+}
+
+.royal-action-btn span {
+    font-weight: 600;
+    font-size: 15px;
+}
+
+.royal-action-btn small {
+    font-size: 11px;
+    opacity: 0.7;
+}
+
+.royal-action-btn.primary {
+    background: linear-gradient(135deg, #D4B8E0, #B896D4);
+    color: white;
+    box-shadow: 0 4px 15px rgba(184, 150, 212, 0.2);
+}
+
+.royal-action-btn.primary:hover {
+    box-shadow: 0 8px 30px rgba(184, 150, 212, 0.35);
+}
+
+.royal-action-btn.lavender {
+    background: #F5ECFA;
+    color: #4A3F5C;
+}
+
+.royal-action-btn.lavender:hover {
+    background: #E8D5F5;
+    box-shadow: 0 8px 25px rgba(184, 150, 212, 0.15);
+}
+
+.royal-action-btn.cream {
+    background: #FFF5F0;
+    color: #4A3F5C;
+}
+
+.royal-action-btn.cream:hover {
+    background: #FDECEA;
+    box-shadow: 0 8px 25px rgba(232, 196, 196, 0.2);
+}
+
+.royal-action-btn.rose {
+    background: #FFF0F5;
+    color: #4A3F5C;
+}
+
+.royal-action-btn.rose:hover {
+    background: #FFE4EC;
+    box-shadow: 0 8px 25px rgba(232, 184, 200, 0.2);
+}
+
+/* Royal Footer */
+.royal-footer-decoration {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(232, 213, 245, 0.2);
+}
+
+/* Custom Scrollbar for Royal Theme */
+.royal-card .card-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.royal-card .card-body::-webkit-scrollbar-track {
+    background: #F5ECFA;
+    border-radius: 10px;
+}
+
+.royal-card .card-body::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #D4B8E0, #B896D4);
+    border-radius: 10px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .royal-actions-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    
+    .royal-stat-number {
+        font-size: 24px;
+    }
+}
+
+@media (max-width: 576px) {
+    .royal-actions-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .royal-list-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .royal-list-badge {
+        align-self: flex-start;
+    }
+    
+    .royal-divider {
+        gap: 8px;
+    }
+    
+    .royal-line {
+        max-width: 40px;
+    }
+}
+</style>
+{% endblock %}

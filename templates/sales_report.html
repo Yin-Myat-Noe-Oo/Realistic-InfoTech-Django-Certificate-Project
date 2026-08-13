@@ -1,0 +1,465 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}👑  Sales Report - {{ store_settings.store_name|default:"Vera's Choice" }}{% endblock %}
+{% block page_title %}👑 Sales Report{% endblock %}
+
+{% block content %}
+<!-- Royal Header -->
+<div class="royal-header text-center mb-4">
+   
+    <h2 style="font-family: 'Playfair Display', serif; color: #4A3F5C; font-weight: 700; letter-spacing: 2px;">
+         Sales Analytics
+    </h2>
+    <p style="color: #7A6B8A; font-weight: 300; letter-spacing: 1px; font-size: 16px;">
+        <i class="bi bi-gem"></i> Track your revenue and insights <i class="bi bi-gem"></i>
+    </p>
+</div>
+
+<!-- Filter Card -->
+<div class="royal-card mb-4">
+    <div class="royal-card-header">
+        <span class="royal-header-icon">📅</span>
+        <span class="royal-header-title">Filter by Date</span>
+        <span class="royal-header-decoration">✦</span>
+    </div>
+    <div class="royal-card-body">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="royal-form-label">
+                    <i class="bi bi-calendar3"></i> From Date
+                </label>
+                <input type="date" name="date_from" class="royal-form-input" value="{{ date_from }}">
+            </div>
+            <div class="col-md-4">
+                <label class="royal-form-label">
+                    <i class="bi bi-calendar3"></i> To Date
+                </label>
+                <input type="date" name="date_to" class="royal-form-input" value="{{ date_to }}">
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn-royal-primary w-100" style="padding:12px;">
+                    <i class="bi bi-filter"></i> Apply Filter
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3 col-sm-6">
+        <div class="royal-stat-card cream">
+            <div class="royal-stat-icon">📊</div>
+            <div class="royal-stat-number">{{ total_sales }}</div>
+            <div class="royal-stat-label">Total Sales</div>
+            <div class="royal-stat-decoration">✦</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="royal-stat-card lavender">
+            <div class="royal-stat-icon">💰</div>
+            <div class="royal-stat-number">${{ total_revenue|floatformat:2 }}</div>
+            <div class="royal-stat-label">Total Revenue</div>
+            <div class="royal-stat-decoration">✦</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="royal-stat-card gold">
+            <div class="royal-stat-icon">📈</div>
+            <div class="royal-stat-number">${{ total_revenue|floatformat:0|default:"0" }}</div>
+            <div class="royal-stat-label">Avg per Sale</div>
+            <div class="royal-stat-decoration">✦</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="royal-stat-card mint">
+            <div class="royal-stat-icon">✨</div>
+            <div class="royal-stat-number">{{ daily_sales|length }}</div>
+            <div class="royal-stat-label">Active Days</div>
+            <div class="royal-stat-decoration">✦</div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row g-4">
+    <!-- Daily Sales -->
+    <div class="col-md-6">
+        <div class="royal-card">
+            <div class="royal-card-header">
+                <span class="royal-header-icon">📊</span>
+                <span class="royal-header-title">Daily Sales</span>
+                <span class="royal-header-decoration">✦</span>
+                <span style="margin-left:auto;font-size:13px;color:#7A6B8A;">
+                    <i class="bi bi-gem"></i> {{ daily_sales|length }} days
+                </span>
+            </div>
+            <div class="royal-card-body" style="max-height: 450px; overflow-y: auto; padding: 0;">
+                {% for day in daily_sales %}
+                    <div class="royal-list-item" style="display:flex;justify-content:space-between;align-items:center;padding:12px 20px;border-bottom:1px solid rgba(232,213,245,0.15);">
+                        <div>
+                            <span style="font-weight:500;color:#4A3F5C;">{{ day.date|date:"M d, Y" }}</span>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:12px;">
+                            <span style="padding:4px 12px;background:#E8ECF5;border-radius:12px;font-size:12px;font-weight:500;color:#2E4A7D;">
+                                {{ day.count }} sale{% if day.count != 1 %}s{% endif %}
+                            </span>
+                            <span style="font-weight:700;color:#B896D4;font-family:'Playfair Display',serif;font-size:17px;">
+                                ${{ day.total|floatformat:2 }}
+                            </span>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="royal-empty-state" style="padding:40px 20px;">
+                        <div class="royal-empty-icon">📊</div>
+                        <p class="royal-empty-text">No sales data</p>
+                        <p class="royal-empty-subtext">No sales found for this period 💫</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Sales -->
+    <div class="col-md-6">
+        <div class="royal-card">
+            <div class="royal-card-header">
+                <span class="royal-header-icon">🕐</span>
+                <span class="royal-header-title">Recent Sales</span>
+                <span class="royal-header-decoration">✦</span>
+                <span style="margin-left:auto;font-size:13px;color:#7A6B8A;">
+                    <i class="bi bi-clock"></i> Latest transactions
+                </span>
+            </div>
+            <div class="royal-card-body" style="max-height: 450px; overflow-y: auto; padding: 0;">
+                {% for sale in sales %}
+                    <div class="royal-list-item" style="display:flex;justify-content:space-between;align-items:center;padding:12px 20px;border-bottom:1px solid rgba(232,213,245,0.15);">
+                        <div>
+                            <div style="font-weight:600;color:#4A3F5C;display:flex;align-items:center;gap:8px;">
+                                <span style="font-size:14px;">👑</span>
+                                {{ sale.invoice_number }}
+                            </div>
+                            <small style="color:#7A6B8A;font-size:12px;">
+                                <i class="bi bi-clock"></i> {{ sale.created_at|date:"M d, H:i" }}
+                            </small>
+                            <br>
+                            <small style="color:#7A6B8A;font-size:12px;">
+                                <i class="bi bi-person"></i> {{ sale.customer.name|default:"Walk-in" }}
+                            </small>
+                        </div>
+                        <div>
+                            <span style="padding:4px 14px;background:#E8F5EC;border-radius:12px;font-weight:600;color:#2E7D5E;font-size:15px;">
+                                ${{ sale.total_amount|floatformat:2 }}
+                            </span>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="royal-empty-state" style="padding:40px 20px;">
+                        <div class="royal-empty-icon">🕐</div>
+                        <p class="royal-empty-text">No recent sales</p>
+                        <p class="royal-empty-subtext">Start making sales to see them here 💫</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Royal Footer Decoration -->
+<div class="royal-footer-decoration text-center mt-4">
+   
+    <p style="color: var(--text-soft); font-size: 13px; margin-top: 10px; letter-spacing: 2px;">
+        ✦ {{ store_settings.store_name|default:"Vera's Choice" }} — Sales Analytics ✦
+    </p>
+</div>
+
+<style>
+/* Royal Header */
+.royal-header {
+    position: relative;
+}
+
+.royal-divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 15px;
+}
+
+.royal-line {
+    flex: 1;
+    max-width: 80px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #D4B8E0, #B896D4, #D4B8E0, transparent);
+}
+
+.royal-crown {
+    font-size: 28px;
+    animation: royal-float 3s ease-in-out infinite;
+}
+
+.royal-diamond {
+    font-size: 18px;
+    color: #D4B8E0;
+    animation: royal-sparkle 2s ease-in-out infinite;
+}
+
+.royal-rose {
+    font-size: 22px;
+    animation: royal-float 2.5s ease-in-out infinite;
+    animation-delay: 0.5s;
+}
+
+@keyframes royal-float {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-5px) rotate(5deg); }
+}
+
+@keyframes royal-sparkle {
+    0%, 100% { opacity: 0.4; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.3); }
+}
+
+/* Royal Cards */
+.royal-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 24px;
+    border: 1px solid rgba(232, 213, 245, 0.2);
+    box-shadow: 0 4px 30px rgba(184, 150, 212, 0.06);
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.royal-card:hover {
+    box-shadow: 0 8px 40px rgba(184, 150, 212, 0.12);
+}
+
+.royal-card-header {
+    padding: 20px 28px;
+    background: linear-gradient(135deg, rgba(245, 236, 250, 0.5), rgba(232, 213, 245, 0.2));
+    border-bottom: 2px solid rgba(232, 213, 245, 0.2);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: 'Playfair Display', serif;
+}
+
+.royal-header-icon {
+    font-size: 20px;
+}
+
+.royal-header-title {
+    flex: 1;
+    font-size: 18px;
+    font-weight: 600;
+    color: #4A3F5C;
+}
+
+.royal-header-decoration {
+    font-size: 16px;
+    color: #D4B8E0;
+}
+
+.royal-card-body {
+    padding: 25px 28px;
+}
+
+/* Royal Form */
+.royal-form-label {
+    display: block;
+    font-weight: 600;
+    color: #4A3F5C;
+    font-size: 14px;
+    margin-bottom: 6px;
+    letter-spacing: 0.3px;
+}
+
+.royal-form-label i {
+    color: #B896D4;
+    margin-right: 6px;
+}
+
+.royal-form-input {
+    width: 100%;
+    padding: 12px 18px;
+    border-radius: 14px;
+    border: 2px solid #E8D5F5;
+    background: #FFFAF8;
+    font-family: 'Quicksand', sans-serif;
+    font-weight: 500;
+    color: #4A3F5C;
+    transition: all 0.3s ease;
+    font-size: 15px;
+}
+
+.royal-form-input:focus {
+    border-color: #B896D4;
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(184, 150, 212, 0.12);
+    background: #FFFFFF;
+}
+
+/* Royal Stat Cards */
+.royal-stat-card {
+    position: relative;
+    border-radius: 20px;
+    padding: 25px 20px;
+    text-align: center;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.royal-stat-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
+    border-radius: 50%;
+    transform: rotate(45deg);
+}
+
+.royal-stat-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 12px 40px rgba(184, 150, 212, 0.2);
+}
+
+.royal-stat-card.cream {
+    background: linear-gradient(135deg, #FFF5F0, #FDECEA);
+    border-color: #E8C4C4;
+}
+
+.royal-stat-card.lavender {
+    background: linear-gradient(135deg, #F5ECFA, #E8D5F5);
+    border-color: #D4B8E0;
+}
+
+.royal-stat-card.gold {
+    background: linear-gradient(135deg, #FFF8F0, #F5E6D3);
+    border-color: #E8C89E;
+}
+
+.royal-stat-card.mint {
+    background: linear-gradient(135deg, #F0FFF5, #E4FFEC);
+    border-color: #A8D5BA;
+}
+
+.royal-stat-icon {
+    font-size: 36px;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.royal-stat-number {
+    font-size: 32px;
+    font-weight: 700;
+    font-family: 'Playfair Display', serif;
+    color: #4A3F5C;
+    margin-bottom: 4px;
+}
+
+.royal-stat-label {
+    font-size: 14px;
+    color: #7A6B8A;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+}
+
+.royal-stat-decoration {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 12px;
+    color: rgba(184, 150, 212, 0.3);
+    font-weight: 300;
+}
+
+/* Royal Buttons */
+.btn-royal-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 24px;
+    background: linear-gradient(135deg, #D4B8E0, #B896D4);
+    border: none;
+    border-radius: 14px;
+    color: white;
+    font-weight: 600;
+    font-family: 'Quicksand', sans-serif;
+    font-size: 14px;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    cursor: pointer;
+    text-decoration: none;
+    box-shadow: 0 4px 15px rgba(184, 150, 212, 0.25);
+}
+
+.btn-royal-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 30px rgba(184, 150, 212, 0.35);
+    color: white;
+    text-decoration: none;
+}
+
+/* Royal Empty State */
+.royal-empty-state {
+    text-align: center;
+    padding: 50px 20px;
+}
+
+.royal-empty-icon {
+    font-size: 48px;
+    color: #D4B8E0;
+    margin-bottom: 10px;
+}
+
+.royal-empty-text {
+    font-size: 16px;
+    font-weight: 500;
+    color: #4A3F5C;
+    margin-bottom: 5px;
+    font-family: 'Playfair Display', serif;
+}
+
+.royal-empty-subtext {
+    font-size: 14px;
+    color: #7A6B8A;
+}
+
+/* Royal Footer */
+.royal-footer-decoration {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(232, 213, 245, 0.2);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .royal-stat-card .royal-stat-number {
+        font-size: 24px;
+    }
+    
+    .royal-stat-card .royal-stat-icon {
+        font-size: 28px;
+    }
+    
+    .royal-card-body {
+        padding: 18px 20px;
+    }
+    
+    .royal-divider {
+        gap: 8px;
+    }
+    
+    .royal-line {
+        max-width: 40px;
+    }
+}
+</style>
+{% endblock %}
